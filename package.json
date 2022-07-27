@@ -1,5 +1,5 @@
 {
-  "name": "@elrondnetwork/native-auth",
+  "name": "@elrondnetwork/native-auth-server",
   "version": "0.1.0",
   "description": "Native authentication server-side",
   "main": "lib/src/index.js",
@@ -20,7 +20,8 @@
   "keywords": [
     "elrond",
     "native",
-    "auth"
+    "auth",
+    "server"
   ],
   "author": "ElrondNetwork",
   "license": "GPL-3.0-or-later",
