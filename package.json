@@ -1,6 +1,6 @@
 {
   "name": "@elrondnetwork/native-auth-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Native authentication server-side",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",
@@ -38,11 +38,11 @@
     "babel-jest": "^27.5.1",
     "eslint": "^8.9.0",
     "jest": "^27.5.1",
-    "typescript": "^4.3.5",
-    "@elrondnetwork/erdjs-walletcore": "^1.0.0"
+    "typescript": "^4.3.5"
   },
   "dependencies": {
     "@elrondnetwork/erdjs": "^10.2.7",
+    "@elrondnetwork/erdjs-walletcore": "^1.0.0",
     "axios": "^0.27.2",
     "bech32": "^2.0.0"
   }
