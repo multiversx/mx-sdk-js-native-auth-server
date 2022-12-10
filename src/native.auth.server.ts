@@ -37,8 +37,8 @@ export class NativeAuthServer {
       body: parsedBody,
     });
 
-    // if empty object, delete extraInfo (e30 = encoded '{}')
-    if (extraInfo === 'e30') {
+    // if empty object, delete extraInfo ('e30=' = encoded '{}')
+    if (extraInfo === 'e30=') {
       delete result.extraInfo;
     }
 
