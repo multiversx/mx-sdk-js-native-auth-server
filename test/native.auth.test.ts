@@ -34,13 +34,13 @@ describe("Native Auth", () => {
   });
 
   describe('Server', () => {
-    it('Simple decode', async () => {
+    it('Simple decode', () => {
       const server = new NativeAuthServer();
 
       onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
       onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
 
-      const result = await server.decode(ACCESS_TOKEN);
+      const result = server.decode(ACCESS_TOKEN);
 
       expect(result).toStrictEqual(new NativeAuthDecoded({
         address: ADDRESS,

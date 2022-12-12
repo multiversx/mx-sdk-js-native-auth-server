@@ -22,7 +22,12 @@ export class NativeAuthServer {
     const [address, body, signature] = accessToken.split('.');
     const parsedAddress = this.decodeValue(address);
     const parsedBody = this.decodeValue(body);
-    const [blockHash, ttl, extraInfo] = parsedBody.split('.');
+    const components = parsedBody.split('.');
+    if (components.length === 4) {
+      components.shift();
+    }
+
+    const [blockHash, ttl, extraInfo] = components;
     const parsedExtraInfo = JSON.parse(this.decodeValue(extraInfo));
 
     const result = new NativeAuthDecoded({
