@@ -1,34 +1,21 @@
 import axios from "axios";
 import MockAdapter, { RequestHandler } from "axios-mock-adapter";
-import { NativeAuthHostNotAcceptedError } from "../src/entities/errors/native.auth.host.not.accepted.error";
 import { NativeAuthInvalidBlockHashError } from "../src/entities/errors/native.auth.invalid.block.hash.error";
 import { NativeAuthInvalidSignatureError } from "../src/entities/errors/native.auth.invalid.signature.error";
 import { NativeAuthTokenExpiredError } from "../src/entities/errors/native.auth.token.expired.error";
 import { NativeAuthDecoded } from "../src/entities/native.auth.decoded";
 import { NativeAuthResult } from "../src/entities/native.auth.validate.result";
-import { NativeAuthServer } from "../src/native.auth.server";
+import { NativeAuthServer } from '../src';
 
 describe("Native Auth", () => {
   let mock: MockAdapter;
-  const ADDRESS = 'erd13rrn3fwjds8r5260n6q3pd2qa6wqkudrhczh26d957c0edyzermshds0k8';
-  const HOST = 'elrond.com';
-  const SIGNATURE = '4b445f287663b868e269aa0532c9fd73acb37cfd45f46e33995777e68e5ecc15d97318d9af09c4102f9b40ecf347a75e2d2e81acbcc3c72ae32fcf659c2acd0e';
+  const ADDRESS = 'erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th';
+  const SIGNATURE = '22ec047bfa02e1617b84f5f5c328ebf46c15cbdbfdd57ca148dfdfc2134a8a97b087fd6ab880cc815a315c70080aac5298f56666b9bea032598adc9b11a3ca08';
   const BLOCK_HASH = 'b3d07565293fd5684c97d2b96eb862d124fd698678f3f95b2515ed07178a27b4';
   const TTL = 86400;
-  const TOKEN = `ZWxyb25kLmNvbQ.${BLOCK_HASH}.${TTL}.e30`;
-  const ACCESS_TOKEN = 'ZXJkMTNycm4zZndqZHM4cjUyNjBuNnEzcGQycWE2d3FrdWRyaGN6aDI2ZDk1N2MwZWR5emVybXNoZHMwazg.Wld4eWIyNWtMbU52YlEuYjNkMDc1NjUyOTNmZDU2ODRjOTdkMmI5NmViODYyZDEyNGZkNjk4Njc4ZjNmOTViMjUxNWVkMDcxNzhhMjdiNC44NjQwMC5lMzA.4b445f287663b868e269aa0532c9fd73acb37cfd45f46e33995777e68e5ecc15d97318d9af09c4102f9b40ecf347a75e2d2e81acbcc3c72ae32fcf659c2acd0e';
+  const TOKEN = `${BLOCK_HASH}.${TTL}.e30=`;
+  const ACCESS_TOKEN = `ZXJkMXF5dTV3dGhsZHpyOHd4NWM5dWNnOGtqYWdnMGpmczUzczhucjN6cHozaHlwZWZzZGQ4c3N5Y3I2dGg=.YjNkMDc1NjUyOTNmZDU2ODRjOTdkMmI5NmViODYyZDEyNGZkNjk4Njc4ZjNmOTViMjUxNWVkMDcxNzhhMjdiNC44NjQwMC5lMzA9.${SIGNATURE}`;
   const BLOCK_TIMESTAMP = 1653068466;
-
-  const PEM_KEY = `-----BEGIN PRIVATE KEY for erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppgl-----
-  ODY1NmI0ZjMzYTRjOTY0MGI3MTFiY2E4NDUzODNiMDZiNjczMjAzNjk2ZjYxYjMy
-  N2E5MDY3ODdlNWExODg1NjA0ZWNhNjZmODAyMzkyMDViNjc2ZGY3OGMwZWNmZjgz
-  Y2Q3N2JlYzczNjc4MWU3NTNhYzZmNTg2ZDQ2NjM5NDA=
-  -----END PRIVATE KEY for erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppgl-----`;
-  const PEM_ADDRESS = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppgl';
-
-  const onLatestBlockHashGet = function (mock: MockAdapter): RequestHandler {
-    return mock.onGet('https://api.elrond.com/blocks?size=1&fields=hash');
-  };
 
   const onLatestBlockTimestampGet = function (mock: MockAdapter): RequestHandler {
     return mock.onGet('https://api.elrond.com/blocks?size=1&fields=timestamp');
@@ -47,18 +34,17 @@ describe("Native Auth", () => {
   });
 
   describe('Server', () => {
-    it('Simple decode', async () => {
+    it('Simple decode', () => {
       const server = new NativeAuthServer();
 
       onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
       onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
 
-      const result = await server.decode(ACCESS_TOKEN);
+      const result = server.decode(ACCESS_TOKEN);
 
       expect(result).toStrictEqual(new NativeAuthDecoded({
         address: ADDRESS,
         ttl: TTL,
-        host: HOST,
         blockHash: BLOCK_HASH,
         signature: SIGNATURE,
         body: TOKEN,
@@ -77,7 +63,6 @@ describe("Native Auth", () => {
         address: ADDRESS,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
-        host: HOST,
       }));
     });
 
@@ -93,37 +78,7 @@ describe("Native Auth", () => {
         address: ADDRESS,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
-        host: HOST,
       }));
-    });
-
-    it('Host should be accepted', async () => {
-      const server = new NativeAuthServer({
-        acceptedHosts: [HOST],
-      });
-
-      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
-      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
-
-      const result = await server.validate(ACCESS_TOKEN);
-
-      expect(result).toStrictEqual(new NativeAuthResult({
-        address: ADDRESS,
-        issued: BLOCK_TIMESTAMP,
-        expires: BLOCK_TIMESTAMP + TTL,
-        host: HOST,
-      }));
-    });
-
-    it('Unsupported host should not be accepted', async () => {
-      const server = new NativeAuthServer({
-        acceptedHosts: ['other-host'],
-      });
-
-      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
-      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
-
-      await expect(server.validate(ACCESS_TOKEN)).rejects.toThrow(NativeAuthHostNotAcceptedError);
     });
 
     it('Block hash not found should not be accepted', async () => {
@@ -189,7 +144,6 @@ describe("Native Auth", () => {
         address: ADDRESS,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
-        host: HOST,
       }));
     });
 
@@ -215,7 +169,6 @@ describe("Native Auth", () => {
         address: ADDRESS,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
-        host: HOST,
       }));
     });
   });

@@ -1,7 +1,6 @@
 import axios from "axios";
 import { UserPublicKey, UserVerifier } from "@elrondnetwork/erdjs-walletcore/out";
 import { Address, SignableMessage } from "@elrondnetwork/erdjs/out";
-import { NativeAuthHostNotAcceptedError } from "./entities/errors/native.auth.host.not.accepted.error";
 import { NativeAuthInvalidBlockHashError } from "./entities/errors/native.auth.invalid.block.hash.error";
 import { NativeAuthInvalidSignatureError } from "./entities/errors/native.auth.invalid.signature.error";
 import { NativeAuthTokenExpiredError } from "./entities/errors/native.auth.token.expired.error";
@@ -23,15 +22,18 @@ export class NativeAuthServer {
     const [address, body, signature] = accessToken.split('.');
     const parsedAddress = this.decodeValue(address);
     const parsedBody = this.decodeValue(body);
-    const [host, blockHash, ttl, extraInfo] = parsedBody.split('.');
+    const components = parsedBody.split('.');
+    if (components.length === 4) {
+      components.shift();
+    }
+
+    const [blockHash, ttl, extraInfo] = components;
     const parsedExtraInfo = JSON.parse(this.decodeValue(extraInfo));
-    const parsedHost = this.decodeValue(host);
 
     const result = new NativeAuthDecoded({
       ttl: Number(ttl),
       address: parsedAddress,
       extraInfo: parsedExtraInfo,
-      host: parsedHost,
       signature,
       blockHash,
       body: parsedBody,
@@ -48,10 +50,6 @@ export class NativeAuthServer {
   async validate(accessToken: string): Promise<NativeAuthValidateResult> {
     const decoded = this.decode(accessToken);
 
-    if (this.config.acceptedHosts.length > 0 && !this.config.acceptedHosts.includes(decoded.host)) {
-      throw new NativeAuthHostNotAcceptedError();
-    }
-
     const blockTimestamp = await this.getBlockTimestamp(decoded.blockHash);
     if (!blockTimestamp) {
       throw new NativeAuthInvalidBlockHashError();
@@ -66,10 +64,9 @@ export class NativeAuthServer {
       throw new NativeAuthTokenExpiredError();
     }
 
-    const signedMessage = `${decoded.address}${decoded.body}{}`;
     const signableMessage = new SignableMessage({
       address: new Address(decoded.address),
-      message: Buffer.from(signedMessage, 'utf8'),
+      message: Buffer.from(decoded.body, 'utf8'),
       signature: new NativeAuthSignature(decoded.signature),
     });
 
@@ -89,7 +86,6 @@ export class NativeAuthServer {
       expires,
       address: decoded.address,
       extraInfo: decoded.extraInfo,
-      host: decoded.host,
     });
 
     if (!decoded.extraInfo) {
@@ -144,6 +140,10 @@ export class NativeAuthServer {
   }
 
   private decodeValue(str: string) {
-    return Buffer.from(str, 'base64').toString('utf8');
+    return Buffer.from(this.unescape(str), 'base64').toString('utf8');
+  }
+
+  private unescape(str: string) {
+    return str.replace(/-/g, "+").replace(/_/g, "\/");
   }
 }
