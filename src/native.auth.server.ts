@@ -140,6 +140,10 @@ export class NativeAuthServer {
   }
 
   private decodeValue(str: string) {
-    return Buffer.from(str, 'base64').toString('utf8');
+    return Buffer.from(this.unescape(str), 'base64').toString('utf8');
+  }
+
+  private unescape(str: string) {
+    return str.replace(/-/g, "+").replace(/_/g, "\/");
   }
 }
