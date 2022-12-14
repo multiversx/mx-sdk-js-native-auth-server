@@ -39,8 +39,8 @@ export class NativeAuthServer {
       body: parsedBody,
     });
 
-    // if empty object, delete extraInfo ('e30=' = encoded '{}')
-    if (extraInfo === 'e30=') {
+    // if empty object, delete extraInfo ('e30' = encoded '{}')
+    if (extraInfo === 'e30') {
       delete result.extraInfo;
     }
 
@@ -64,9 +64,10 @@ export class NativeAuthServer {
       throw new NativeAuthTokenExpiredError();
     }
 
+    const signedMessage = `${decoded.address}${decoded.body}{}`;
     const signableMessage = new SignableMessage({
       address: new Address(decoded.address),
-      message: Buffer.from(decoded.body, 'utf8'),
+      message: Buffer.from(signedMessage, 'utf8'),
       signature: new NativeAuthSignature(decoded.signature),
     });
 

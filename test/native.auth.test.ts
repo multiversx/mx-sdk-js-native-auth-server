@@ -9,13 +9,13 @@ import { NativeAuthServer } from '../src';
 
 describe("Native Auth", () => {
   let mock: MockAdapter;
-  const ADDRESS = 'erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th';
-  const SIGNATURE = '22ec047bfa02e1617b84f5f5c328ebf46c15cbdbfdd57ca148dfdfc2134a8a97b087fd6ab880cc815a315c70080aac5298f56666b9bea032598adc9b11a3ca08';
-  const BLOCK_HASH = 'b3d07565293fd5684c97d2b96eb862d124fd698678f3f95b2515ed07178a27b4';
+  const ADDRESS = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppgl';
+  const SIGNATURE = '8ee9b5297b2cfaf05f24542e12243a3d8661099a2a2ce4384d22a5d358ae6571611e6b5f88e985c368235632164b37204f702012cf52c55dafa96de54bf64d00';
+  const BLOCK_HASH = '57d91918a489b2e678e0c91c845044a962cadfc5e188685b96717fc9869a975d';
   const TTL = 86400;
-  const TOKEN = `${BLOCK_HASH}.${TTL}.e30=`;
-  const ACCESS_TOKEN = `ZXJkMXF5dTV3dGhsZHpyOHd4NWM5dWNnOGtqYWdnMGpmczUzczhucjN6cHozaHlwZWZzZGQ4c3N5Y3I2dGg=.YjNkMDc1NjUyOTNmZDU2ODRjOTdkMmI5NmViODYyZDEyNGZkNjk4Njc4ZjNmOTViMjUxNWVkMDcxNzhhMjdiNC44NjQwMC5lMzA9.${SIGNATURE}`;
-  const BLOCK_TIMESTAMP = 1653068466;
+  const TOKEN = `YXBpLmVscm9uZC5jb20.${BLOCK_HASH}.${TTL}.e30`;
+  const ACCESS_TOKEN = `ZXJkMXFuazJ2bXVxeXdmcXRkbmttYXV2cG04bHMweGgwMGs4eGV1cHVhZjZjbTZjZDRyeDg5cXF6MHBwZ2w.WVhCcExtVnNjbTl1WkM1amIyMC41N2Q5MTkxOGE0ODliMmU2NzhlMGM5MWM4NDUwNDRhOTYyY2FkZmM1ZTE4ODY4NWI5NjcxN2ZjOTg2OWE5NzVkLjg2NDAwLmUzMA.${SIGNATURE}`;
+  const BLOCK_TIMESTAMP = 1671009408;
 
   const onLatestBlockTimestampGet = function (mock: MockAdapter): RequestHandler {
     return mock.onGet('https://api.elrond.com/blocks?size=1&fields=timestamp');
