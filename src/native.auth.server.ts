@@ -68,17 +68,17 @@ export class NativeAuthServer {
       throw new NativeAuthTokenExpiredError();
     }
 
-    const signedMessageLegacy = `${decoded.address}${decoded.body}{}`;
-    const signableMessageLegacy = new SignableMessage({
-      address: new Address(decoded.address),
-      message: Buffer.from(signedMessageLegacy, 'utf8'),
-      signature: new NativeAuthSignature(decoded.signature),
-    });
-
     const signedMessage = `${decoded.address}${decoded.body}`;
     const signableMessage = new SignableMessage({
       address: new Address(decoded.address),
       message: Buffer.from(signedMessage, 'utf8'),
+      signature: new NativeAuthSignature(decoded.signature),
+    });
+
+    const signedMessageLegacy = `${decoded.address}${decoded.body}{}`;
+    const signableMessageLegacy = new SignableMessage({
+      address: new Address(decoded.address),
+      message: Buffer.from(signedMessageLegacy, 'utf8'),
       signature: new NativeAuthSignature(decoded.signature),
     });
 
