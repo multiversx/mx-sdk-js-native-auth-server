@@ -8,6 +8,7 @@ import { NativeAuthServerConfig } from "./entities/native.auth.server.config";
 import { NativeAuthSignature } from "./native.auth.signature";
 import { NativeAuthResult as NativeAuthValidateResult } from "./entities/native.auth.validate.result";
 import { NativeAuthDecoded } from "./entities/native.auth.decoded";
+import { NativeAuthHostNotAcceptedError } from "./entities/errors/native.auth.host.not.accepted.error";
 
 export class NativeAuthServer {
   config: NativeAuthServerConfig;
@@ -23,15 +24,14 @@ export class NativeAuthServer {
     const parsedAddress = this.decodeValue(address);
     const parsedBody = this.decodeValue(body);
     const components = parsedBody.split('.');
-    if (components.length === 4) {
-      components.shift();
-    }
 
-    const [blockHash, ttl, extraInfo] = components;
+    const [host, blockHash, ttl, extraInfo] = components;
     const parsedExtraInfo = JSON.parse(this.decodeValue(extraInfo));
+    const parsedHost = this.decodeValue(host);
 
     const result = new NativeAuthDecoded({
       ttl: Number(ttl),
+      host: parsedHost,
       address: parsedAddress,
       extraInfo: parsedExtraInfo,
       signature,
@@ -49,6 +49,10 @@ export class NativeAuthServer {
 
   async validate(accessToken: string): Promise<NativeAuthValidateResult> {
     const decoded = this.decode(accessToken);
+
+    if (this.config.acceptedHosts.length > 0 && !this.config.acceptedHosts.includes(decoded.host)) {
+      throw new NativeAuthHostNotAcceptedError();
+    }
 
     const blockTimestamp = await this.getBlockTimestamp(decoded.blockHash);
     if (!blockTimestamp) {
@@ -85,6 +89,7 @@ export class NativeAuthServer {
     const result = new NativeAuthValidateResult({
       issued: blockTimestamp,
       expires,
+      host: decoded.host,
       address: decoded.address,
       extraInfo: decoded.extraInfo,
     });

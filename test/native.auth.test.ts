@@ -6,6 +6,7 @@ import { NativeAuthTokenExpiredError } from "../src/entities/errors/native.auth.
 import { NativeAuthDecoded } from "../src/entities/native.auth.decoded";
 import { NativeAuthResult } from "../src/entities/native.auth.validate.result";
 import { NativeAuthServer } from '../src';
+import { NativeAuthHostNotAcceptedError } from "../src/entities/errors/native.auth.host.not.accepted.error";
 
 describe("Native Auth", () => {
   let mock: MockAdapter;
@@ -16,6 +17,7 @@ describe("Native Auth", () => {
   const TOKEN = `YXBpLmVscm9uZC5jb20.${BLOCK_HASH}.${TTL}.e30`;
   const ACCESS_TOKEN = `ZXJkMXFuazJ2bXVxeXdmcXRkbmttYXV2cG04bHMweGgwMGs4eGV1cHVhZjZjbTZjZDRyeDg5cXF6MHBwZ2w.WVhCcExtVnNjbTl1WkM1amIyMC41N2Q5MTkxOGE0ODliMmU2NzhlMGM5MWM4NDUwNDRhOTYyY2FkZmM1ZTE4ODY4NWI5NjcxN2ZjOTg2OWE5NzVkLjg2NDAwLmUzMA.${SIGNATURE}`;
   const BLOCK_TIMESTAMP = 1671009408;
+  const HOST = 'api.elrond.com';
 
   const onLatestBlockTimestampGet = function (mock: MockAdapter): RequestHandler {
     return mock.onGet('https://api.elrond.com/blocks?size=1&fields=timestamp');
@@ -44,6 +46,7 @@ describe("Native Auth", () => {
 
       expect(result).toStrictEqual(new NativeAuthDecoded({
         address: ADDRESS,
+        host: HOST,
         ttl: TTL,
         blockHash: BLOCK_HASH,
         signature: SIGNATURE,
@@ -61,6 +64,7 @@ describe("Native Auth", () => {
 
       expect(result).toStrictEqual(new NativeAuthResult({
         address: ADDRESS,
+        host: HOST,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
       }));
@@ -76,9 +80,38 @@ describe("Native Auth", () => {
 
       expect(result).toStrictEqual(new NativeAuthResult({
         address: ADDRESS,
+        host: HOST,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
       }));
+    });
+    it('Host should be accepted', async () => {
+      const server = new NativeAuthServer({
+        acceptedHosts: [HOST],
+      });
+
+      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+      const result = await server.validate(ACCESS_TOKEN);
+
+      expect(result).toStrictEqual(new NativeAuthResult({
+        address: ADDRESS,
+        issued: BLOCK_TIMESTAMP,
+        expires: BLOCK_TIMESTAMP + TTL,
+        host: HOST,
+      }));
+    });
+
+    it('Unsupported host should not be accepted', async () => {
+      const server = new NativeAuthServer({
+        acceptedHosts: ['other-host'],
+      });
+
+      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+      await expect(server.validate(ACCESS_TOKEN)).rejects.toThrow(NativeAuthHostNotAcceptedError);
     });
 
     it('Block hash not found should not be accepted', async () => {
@@ -142,6 +175,7 @@ describe("Native Auth", () => {
 
       expect(result).toStrictEqual(new NativeAuthResult({
         address: ADDRESS,
+        host: HOST,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
       }));
@@ -167,6 +201,7 @@ describe("Native Auth", () => {
 
       expect(result).toStrictEqual(new NativeAuthResult({
         address: ADDRESS,
+        host: HOST,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
       }));
