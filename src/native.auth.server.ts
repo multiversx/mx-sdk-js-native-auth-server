@@ -68,7 +68,14 @@ export class NativeAuthServer {
       throw new NativeAuthTokenExpiredError();
     }
 
-    const signedMessage = `${decoded.address}${decoded.body}{}`;
+    const signedMessageLegacy = `${decoded.address}${decoded.body}{}`;
+    const signableMessageLegacy = new SignableMessage({
+      address: new Address(decoded.address),
+      message: Buffer.from(signedMessageLegacy, 'utf8'),
+      signature: new NativeAuthSignature(decoded.signature),
+    });
+
+    const signedMessage = `${decoded.address}${decoded.body}`;
     const signableMessage = new SignableMessage({
       address: new Address(decoded.address),
       message: Buffer.from(signedMessage, 'utf8'),
@@ -80,7 +87,7 @@ export class NativeAuthServer {
     );
 
     const verifier = new UserVerifier(publicKey);
-    const valid = verifier.verify(signableMessage);
+    const valid = verifier.verify(signableMessage) || verifier.verify(signableMessageLegacy);
 
     if (!valid) {
       throw new NativeAuthInvalidSignatureError();
