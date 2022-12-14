@@ -10,6 +10,12 @@ Native Authenticator server-side component for JavaScript and TypeScript (writte
 
 ```js
 const server = new NativeAuthServer();
+
+// decodes the accessToken in its components: ttl, host, address, signature, blockHash & body
+const decoded = await server.decode(accessToken);
+
+// decodes and validates the accessToken.
+// Performs validation of the block hash, verifies its validity, as well as host verification
 const result = await server.validate(accessToken);
 ```
 
