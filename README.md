@@ -22,6 +22,10 @@ const result = await server.validate(accessToken);
   // The default value points to the mainnet API, but can be overridden to be network-specific
   // or to point to a self-hosted location
   apiUrl: string = 'https://api.elrond.com';
+  
+  // An optional list of accepted hosts in case the server component must validate the incoming requests
+  // by domain
+  acceptedHosts: string[] = [];
 
   // Maximum allowed TTL from the token.
   // Default: one day (86400 seconds)
