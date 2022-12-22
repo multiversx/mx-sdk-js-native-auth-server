@@ -143,9 +143,10 @@ export class NativeAuthServer {
 
       return Number(timestamp);
     } catch (error) {
-      // @ts-ignore
-      if (error.response?.status === 404) {
-        return undefined;
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 404) {
+          return undefined;
+        }
       }
 
       throw error;
