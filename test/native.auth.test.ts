@@ -152,22 +152,19 @@ describe("Native Auth", () => {
       const server = new NativeAuthServer();
 
       server.config.cache = {
-        // eslint-disable-next-line require-await
-        getValue: async function <T>(key: string): Promise<T | undefined> {
+        getValue: (key: string): Promise<number | undefined> => {
           if (key === `block:timestamp:${BLOCK_HASH}`) {
-            // @ts-ignore
-            return BLOCK_TIMESTAMP;
+            return Promise.resolve(BLOCK_TIMESTAMP);
           }
 
           if (key === 'block:timestamp:latest') {
-            // @ts-ignore
-            return BLOCK_TIMESTAMP;
+            return Promise.resolve(BLOCK_TIMESTAMP);
           }
 
           throw new Error(`Key '${key}' not mocked`);
         },
-        setValue: async function <T>(key: string, value: T, ttl: number): Promise<void> {
-
+        setValue: (): Promise<void> => {
+          return Promise.resolve();
         },
       };
 
