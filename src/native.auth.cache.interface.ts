@@ -1,5 +1,5 @@
 export interface NativeAuthCacheInterface {
-  getValue<T>(key: string): Promise<T | undefined>
+  getValue(key: string): Promise<number | undefined>;
 
-  setValue<T>(key: string, value: T, ttl: number): Promise<void>
+  setValue(key: string, value: number, ttl: number): Promise<void>;
 }
