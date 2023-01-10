@@ -1,5 +1,5 @@
 {
-  "name": "@multivers/native-auth-server",
+  "name": "@multiversx/native-auth-server",
   "version": "0.2.1",
   "description": "Native authentication server-side",
   "main": "lib/src/index.js",
