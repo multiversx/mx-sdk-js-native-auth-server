@@ -11,20 +11,20 @@ import { NativeAuthHostNotAcceptedError } from "../src/entities/errors/native.au
 describe("Native Auth", () => {
   let mock: MockAdapter;
   const ADDRESS = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppgl';
-  const SIGNATURE = '0a954ee91f73b955bdebf8bc3029708fc63e3a7602b727dfdc30210ee92c4659b7e09bb6243b1d507d005a6863d73fa2626791131f23ec8f750821ae419f9308';
-  const BLOCK_HASH = '2da3aff8a2c4fd2501f2fde40a983a50f13a9d0c0be535032e45a92473111c44';
+  const SIGNATURE = '563cb2dfdf96ab335423a05287fa3cd00154034423d0062421ee6ce03230d941da6df9ce79689fcd173c0ba5d4331b3ccd82c8ec2e6ab4d875db1587c2ab720c';
+  const BLOCK_HASH = '82ec8044966efb2d00e8a6367ea23ddbc7bea6504ed98f4a1a536d7c21bb2682';
   const TTL = 86400;
-  const TOKEN = `YXBpLmVscm9uZC5jb20.${BLOCK_HASH}.${TTL}.e30`;
-  const ACCESS_TOKEN = `ZXJkMXFuazJ2bXVxeXdmcXRkbmttYXV2cG04bHMweGgwMGs4eGV1cHVhZjZjbTZjZDRyeDg5cXF6MHBwZ2w.WVhCcExtVnNjbTl1WkM1amIyMC4yZGEzYWZmOGEyYzRmZDI1MDFmMmZkZTQwYTk4M2E1MGYxM2E5ZDBjMGJlNTM1MDMyZTQ1YTkyNDczMTExYzQ0Ljg2NDAwLmUzMA.${SIGNATURE}`;
+  const TOKEN = `YXBpLm11bHRpdmVyc3guY29t.${BLOCK_HASH}.${TTL}.e30`;
+  const ACCESS_TOKEN = `ZXJkMXFuazJ2bXVxeXdmcXRkbmttYXV2cG04bHMweGgwMGs4eGV1cHVhZjZjbTZjZDRyeDg5cXF6MHBwZ2w.WVhCcExtMTFiSFJwZG1WeWMzZ3VZMjl0LjgyZWM4MDQ0OTY2ZWZiMmQwMGU4YTYzNjdlYTIzZGRiYzdiZWE2NTA0ZWQ5OGY0YTFhNTM2ZDdjMjFiYjI2ODIuODY0MDAuZTMw.${SIGNATURE}`;
   const BLOCK_TIMESTAMP = 1671009408;
-  const HOST = 'api.elrond.com';
+  const HOST = 'api.multiversx.com';
 
   const onLatestBlockTimestampGet = function (mock: MockAdapter): RequestHandler {
-    return mock.onGet('https://api.elrond.com/blocks?size=1&fields=timestamp');
+    return mock.onGet('https://api.multiversx.com/blocks?size=1&fields=timestamp');
   };
 
   const onSpecificBlockTimestampGet = function (mock: MockAdapter): RequestHandler {
-    return mock.onGet(`https://api.elrond.com/blocks/${BLOCK_HASH}?extract=timestamp`);
+    return mock.onGet(`https://api.multiversx.com/blocks/${BLOCK_HASH}?extract=timestamp`);
   };
 
   beforeAll(() => {
