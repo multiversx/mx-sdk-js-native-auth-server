@@ -4,7 +4,7 @@ Native Authenticator server-side component for JavaScript and TypeScript (writte
 
 ## Distribution
 
-[npm](https://www.npmjs.com/package/@elrondnetwork/native-auth-server)
+[npm](https://www.npmjs.com/package/@multiversx/native-auth-server)
 
 ## Example
 
@@ -19,7 +19,6 @@ const decoded = await server.decode(accessToken);
 const result = await server.validate(accessToken);
 ```
 
-
 ### Config
 
 ```js
@@ -27,8 +26,8 @@ const result = await server.validate(accessToken);
   // The endpoint from where the current block information will be fetched upon validation.
   // The default value points to the mainnet API, but can be overridden to be network-specific
   // or to point to a self-hosted location
-  apiUrl: string = 'https://api.elrond.com';
-  
+  apiUrl: string = 'https://api.multiversx.com';
+
   // An optional list of accepted hosts in case the server component must validate the incoming requests
   // by domain
   acceptedHosts: string[] = [];
@@ -37,7 +36,7 @@ const result = await server.validate(accessToken);
   // Default: one day (86400 seconds)
   maxExpirySeconds: number = 86400;
 
-  // An optional implementation of the caching interface used for resolving 
+  // An optional implementation of the caching interface used for resolving
   // latest block timestamp and also to validate and provide a block timestamp given a certain block hash.
   // It can be integrated with popular caching mechanisms such as redis
   cache?: NativeAuthCacheInterface;

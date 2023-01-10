@@ -1,6 +1,4 @@
 import axios from "axios";
-import { UserPublicKey, UserVerifier } from "@elrondnetwork/erdjs-walletcore/out";
-import { Address, SignableMessage } from "@elrondnetwork/erdjs/out";
 import { NativeAuthInvalidBlockHashError } from "./entities/errors/native.auth.invalid.block.hash.error";
 import { NativeAuthInvalidSignatureError } from "./entities/errors/native.auth.invalid.signature.error";
 import { NativeAuthTokenExpiredError } from "./entities/errors/native.auth.token.expired.error";
@@ -9,6 +7,8 @@ import { NativeAuthSignature } from "./native.auth.signature";
 import { NativeAuthResult as NativeAuthValidateResult } from "./entities/native.auth.validate.result";
 import { NativeAuthDecoded } from "./entities/native.auth.decoded";
 import { NativeAuthHostNotAcceptedError } from "./entities/errors/native.auth.host.not.accepted.error";
+import { UserPublicKey, UserVerifier } from "@multiversx/erdjs-walletcore";
+import { SignableMessage, Address } from "@multiversx/erdjs";
 
 export class NativeAuthServer {
   config: NativeAuthServerConfig;
