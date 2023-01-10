@@ -24,7 +24,7 @@ jobs:
           gh release create $RELEASE_TAG --target=$GITHUB_SHA --title="$RELEASE_TAG" --generate-notes
 
       - run: npm ci
-      - run: npm build
+      - run: npm run build
       - run: npm test
 
       - name: Publish to npmjs
