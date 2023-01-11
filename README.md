@@ -4,7 +4,7 @@ Native Authenticator server-side component for JavaScript and TypeScript (writte
 
 ## Distribution
 
-[npm](https://www.npmjs.com/package/@multiversx/native-auth-server)
+[npm](https://www.npmjs.com/package/@multiversx/sdk-native-auth-server)
 
 ## Example
 
