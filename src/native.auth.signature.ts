@@ -1,4 +1,4 @@
-import { ISignature } from "@multiversx/erdjs";
+import { ISignature } from "@multiversx/sdk-core";
 
 export class NativeAuthSignature implements ISignature {
   constructor(private readonly signature: string) { }
