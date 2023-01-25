@@ -9,6 +9,7 @@ import { NativeAuthDecoded } from "./entities/native.auth.decoded";
 import { NativeAuthHostNotAcceptedError } from "./entities/errors/native.auth.host.not.accepted.error";
 import { SignableMessage, Address } from "@multiversx/sdk-core";
 import { UserPublicKey, UserVerifier } from "@multiversx/sdk-wallet";
+import { NativeAuthInvalidTokenTtlError } from "./entities/errors/native.auth.invalid.token.ttl.error";
 export class NativeAuthServer {
   config: NativeAuthServerConfig;
 
@@ -48,6 +49,10 @@ export class NativeAuthServer {
 
   async validate(accessToken: string): Promise<NativeAuthValidateResult> {
     const decoded = this.decode(accessToken);
+
+    if (decoded.ttl > this.config.maxExpirySeconds) {
+      throw new NativeAuthInvalidTokenTtlError(decoded.ttl, this.config.maxExpirySeconds);
+    }
 
     if (this.config.acceptedHosts.length > 0 && !this.config.acceptedHosts.includes(decoded.host)) {
       throw new NativeAuthHostNotAcceptedError();

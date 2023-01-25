@@ -5,7 +5,7 @@ import { NativeAuthInvalidSignatureError } from "../src/entities/errors/native.a
 import { NativeAuthTokenExpiredError } from "../src/entities/errors/native.auth.token.expired.error";
 import { NativeAuthDecoded } from "../src/entities/native.auth.decoded";
 import { NativeAuthResult } from "../src/entities/native.auth.validate.result";
-import { NativeAuthServer } from '../src';
+import { NativeAuthInvalidTokenTtlError, NativeAuthServer } from '../src';
 import { NativeAuthHostNotAcceptedError } from "../src/entities/errors/native.auth.host.not.accepted.error";
 
 describe("Native Auth", () => {
@@ -85,6 +85,7 @@ describe("Native Auth", () => {
         expires: BLOCK_TIMESTAMP + TTL,
       }));
     });
+
     it('Host should be accepted', async () => {
       const server = new NativeAuthServer({
         acceptedHosts: [HOST],
@@ -141,11 +142,18 @@ describe("Native Auth", () => {
 
     it('Invalid signature should throw error', async () => {
       const server = new NativeAuthServer();
-
       onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
       onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
 
       await expect(server.validate(ACCESS_TOKEN + 'abbbbbbbbb')).rejects.toThrow(NativeAuthInvalidSignatureError);
+    });
+
+    it('Ttl greater than max expiry seconds should throw error', async () => {
+      const server = new NativeAuthServer({
+        maxExpirySeconds: 80000,
+      });
+
+      await expect(server.validate(ACCESS_TOKEN)).rejects.toThrow(NativeAuthInvalidTokenTtlError);
     });
 
     it('Cache hit', async () => {
