@@ -131,13 +131,13 @@ describe("Native Auth", () => {
       await expect(server.validate(ACCESS_TOKEN)).rejects.toThrow('Request failed with status code 500');
     });
 
-    it('Latest block + ttl + 1 should throw expired error', async () => {
+
+    it('Invalid signature should throw error', async () => {
       const server = new NativeAuthServer();
-
       onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
-      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP + TTL + 1 }]);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
 
-      await expect(server.validate(ACCESS_TOKEN)).rejects.toThrow(NativeAuthTokenExpiredError);
+      await expect(server.validate(ACCESS_TOKEN + 'abbbbbbbbb')).rejects.toThrow(NativeAuthInvalidSignatureError);
     });
 
     it('Latest block + ttl + 1 should throw expired error', async () => {
