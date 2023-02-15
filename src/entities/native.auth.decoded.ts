@@ -4,7 +4,7 @@ export class NativeAuthDecoded {
   }
 
   ttl: number = 0;
-  host: string = '';
+  origin: string = '';
   address: string = '';
   extraInfo?: any;
   signature: string = '';

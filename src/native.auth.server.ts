@@ -6,18 +6,34 @@ import { NativeAuthServerConfig } from "./entities/native.auth.server.config";
 import { NativeAuthSignature } from "./native.auth.signature";
 import { NativeAuthResult as NativeAuthValidateResult } from "./entities/native.auth.validate.result";
 import { NativeAuthDecoded } from "./entities/native.auth.decoded";
-import { NativeAuthHostNotAcceptedError } from "./entities/errors/native.auth.host.not.accepted.error";
+import { NativeAuthOriginNotAcceptedError } from "./entities/errors/native.auth.origin.not.accepted.error";
 import { SignableMessage, Address } from "@multiversx/sdk-core";
 import { UserPublicKey, UserVerifier } from "@multiversx/sdk-wallet";
 import { NativeAuthInvalidTokenTtlError } from "./entities/errors/native.auth.invalid.token.ttl.error";
 import { NativeAuthInvalidTokenError } from "./entities/errors/native.auth.invalid.token.error";
+import { NativeAuthInvalidConfigError } from "./entities/errors/native.auth.invalid.config.error";
 export class NativeAuthServer {
-  config: NativeAuthServerConfig;
+  private DEFAULT_API_URL = "https://api.multiversx.com";
+  private MAX_EXPIRY_SECONDS = 86400;
 
   constructor(
-    config?: Partial<NativeAuthServerConfig>,
+    readonly config: NativeAuthServerConfig,
   ) {
-    this.config = Object.assign(new NativeAuthServerConfig(), config);
+    if (!config.apiUrl) {
+      config.apiUrl = this.DEFAULT_API_URL;
+    }
+
+    if (!(config.maxExpirySeconds > 0 && config.maxExpirySeconds <= this.MAX_EXPIRY_SECONDS)) {
+      throw new NativeAuthInvalidConfigError(`maxExpirySeconds must be greater than 0 and cannot be greater than ${this.MAX_EXPIRY_SECONDS}`);
+    }
+
+    if (!Array.isArray(config.acceptedOrigins)) {
+      throw new NativeAuthInvalidConfigError('acceptedOrigins must be an array');
+    }
+
+    if (!config.acceptedOrigins || config.acceptedOrigins.length === 0) {
+      throw new NativeAuthInvalidConfigError('at least one value must be specified in the acceptedOrigins array');
+    }
   }
 
   decode(accessToken: string): NativeAuthDecoded {
@@ -34,7 +50,7 @@ export class NativeAuthServer {
       throw new NativeAuthInvalidTokenError();
     }
 
-    const [host, blockHash, ttl, extraInfo] = bodyComponents;
+    const [origin, blockHash, ttl, extraInfo] = bodyComponents;
 
     let parsedExtraInfo;
     try {
@@ -43,11 +59,11 @@ export class NativeAuthServer {
       throw new NativeAuthInvalidTokenError();
     }
 
-    const parsedHost = this.decodeValue(host);
+    const parsedOrigin = this.decodeValue(origin);
 
     const result = new NativeAuthDecoded({
       ttl: Number(ttl),
-      host: parsedHost,
+      origin: parsedOrigin,
       address: parsedAddress,
       extraInfo: parsedExtraInfo,
       signature,
@@ -70,8 +86,8 @@ export class NativeAuthServer {
       throw new NativeAuthInvalidTokenTtlError(decoded.ttl, this.config.maxExpirySeconds);
     }
 
-    if (this.config.acceptedHosts.length > 0 && !this.config.acceptedHosts.includes(decoded.host)) {
-      throw new NativeAuthHostNotAcceptedError();
+    if (this.config.acceptedOrigins.length > 0 && !this.config.acceptedOrigins.includes(decoded.origin)) {
+      throw new NativeAuthOriginNotAcceptedError();
     }
 
     const blockTimestamp = await this.getBlockTimestamp(decoded.blockHash);
@@ -116,7 +132,7 @@ export class NativeAuthServer {
     const result = new NativeAuthValidateResult({
       issued: blockTimestamp,
       expires,
-      host: decoded.host,
+      origin: decoded.origin,
       address: decoded.address,
       extraInfo: decoded.extraInfo,
     });
