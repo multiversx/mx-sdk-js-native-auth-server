@@ -10,6 +10,7 @@ import { NativeAuthHostNotAcceptedError } from "./entities/errors/native.auth.ho
 import { SignableMessage, Address } from "@multiversx/sdk-core";
 import { UserPublicKey, UserVerifier } from "@multiversx/sdk-wallet";
 import { NativeAuthInvalidTokenTtlError } from "./entities/errors/native.auth.invalid.token.ttl.error";
+import { NativeAuthInvalidTokenError } from "./entities/errors/native.auth.invalid.token.error";
 export class NativeAuthServer {
   config: NativeAuthServerConfig;
 
@@ -20,13 +21,28 @@ export class NativeAuthServer {
   }
 
   decode(accessToken: string): NativeAuthDecoded {
+    const tokenComponents = accessToken.split('.');
+    if (tokenComponents.length !== 3) {
+      throw new NativeAuthInvalidTokenError();
+    }
+
     const [address, body, signature] = accessToken.split('.');
     const parsedAddress = this.decodeValue(address);
     const parsedBody = this.decodeValue(body);
-    const components = parsedBody.split('.');
+    const bodyComponents = parsedBody.split('.');
+    if (bodyComponents.length !== 4) {
+      throw new NativeAuthInvalidTokenError();
+    }
 
-    const [host, blockHash, ttl, extraInfo] = components;
-    const parsedExtraInfo = JSON.parse(this.decodeValue(extraInfo));
+    const [host, blockHash, ttl, extraInfo] = bodyComponents;
+
+    let parsedExtraInfo;
+    try {
+      parsedExtraInfo = JSON.parse(this.decodeValue(extraInfo));
+    } catch {
+      throw new NativeAuthInvalidTokenError();
+    }
+
     const parsedHost = this.decodeValue(host);
 
     const result = new NativeAuthDecoded({

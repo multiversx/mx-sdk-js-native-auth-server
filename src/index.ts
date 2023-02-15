@@ -7,5 +7,6 @@ export * from './entities/native.auth.validate.result';
 export * from './entities/errors/native.auth.host.not.accepted.error';
 export * from './entities/errors/native.auth.invalid.block.hash.error';
 export * from './entities/errors/native.auth.invalid.signature.error';
+export * from './entities/errors/native.auth.invalid.token.error';
 export * from './entities/errors/native.auth.invalid.token.ttl.error';
 export * from './entities/errors/native.auth.token.expired.error';
