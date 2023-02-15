@@ -4,6 +4,7 @@ export * from './native.auth.cache.interface';
 export * from './entities/native.auth.decoded';
 export * from './entities/native.auth.server.config';
 export * from './entities/native.auth.validate.result';
+export * from './entities/errors/native.auth.error';
 export * from './entities/errors/native.auth.origin.not.accepted.error';
 export * from './entities/errors/native.auth.invalid.block.hash.error';
 export * from './entities/errors/native.auth.invalid.config.error';
