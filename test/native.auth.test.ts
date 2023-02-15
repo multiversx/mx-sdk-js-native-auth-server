@@ -11,11 +11,11 @@ import { NativeAuthOriginNotAcceptedError } from "../src/entities/errors/native.
 describe("Native Auth", () => {
   let mock: MockAdapter;
   const ADDRESS = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppgl';
-  const SIGNATURE = '563cb2dfdf96ab335423a05287fa3cd00154034423d0062421ee6ce03230d941da6df9ce79689fcd173c0ba5d4331b3ccd82c8ec2e6ab4d875db1587c2ab720c';
-  const BLOCK_HASH = '82ec8044966efb2d00e8a6367ea23ddbc7bea6504ed98f4a1a536d7c21bb2682';
+  const SIGNATURE = '906e79d54e69e688680abee54ec0c49ce2561eb5abfd01865b31cb3ed738272c7cfc4fc8cc1c3590dd5757e622639b01a510945d7f7c9d1ceda20a50a817080d';
+  const BLOCK_HASH = 'ab459013b27fdc6fe98eed567bd0c1754e0628a4cc16883bf0170a29da37ad46';
   const TTL = 86400;
-  const TOKEN = `YXBpLm11bHRpdmVyc3guY29t.${BLOCK_HASH}.${TTL}.e30`;
-  const ACCESS_TOKEN = `ZXJkMXFuazJ2bXVxeXdmcXRkbmttYXV2cG04bHMweGgwMGs4eGV1cHVhZjZjbTZjZDRyeDg5cXF6MHBwZ2w.WVhCcExtMTFiSFJwZG1WeWMzZ3VZMjl0LjgyZWM4MDQ0OTY2ZWZiMmQwMGU4YTYzNjdlYTIzZGRiYzdiZWE2NTA0ZWQ5OGY0YTFhNTM2ZDdjMjFiYjI2ODIuODY0MDAuZTMw.${SIGNATURE}`;
+  const TOKEN = `aHR0cHM6Ly9hcGkubXVsdGl2ZXJzeC5jb20.${BLOCK_HASH}.${TTL}.e30`;
+  const ACCESS_TOKEN = `ZXJkMXFuazJ2bXVxeXdmcXRkbmttYXV2cG04bHMweGgwMGs4eGV1cHVhZjZjbTZjZDRyeDg5cXF6MHBwZ2w.YUhSMGNITTZMeTloY0drdWJYVnNkR2wyWlhKemVDNWpiMjAuYWI0NTkwMTNiMjdmZGM2ZmU5OGVlZDU2N2JkMGMxNzU0ZTA2MjhhNGNjMTY4ODNiZjAxNzBhMjlkYTM3YWQ0Ni44NjQwMC5lMzA.906e79d54e69e688680abee54ec0c49ce2561eb5abfd01865b31cb3ed738272c7cfc4fc8cc1c3590dd5757e622639b01a510945d7f7c9d1ceda20a50a817080d`;
   const BLOCK_TIMESTAMP = 1671009408;
   const ORIGIN = 'https://api.multiversx.com';
   const defaultConfig: NativeAuthServerConfig = {
