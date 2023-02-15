@@ -11,11 +11,11 @@ Native Authenticator server-side component for JavaScript and TypeScript (writte
 ```js
 const server = new NativeAuthServer();
 
-// decodes the accessToken in its components: ttl, host, address, signature, blockHash & body
+// decodes the accessToken in its components: ttl, origin, address, signature, blockHash & body
 const decoded = await server.decode(accessToken);
 
 // decodes and validates the accessToken.
-// Performs validation of the block hash, verifies its validity, as well as host verification
+// Performs validation of the block hash, verifies its validity, as well as origin verification
 const result = await server.validate(accessToken);
 ```
 
@@ -28,9 +28,9 @@ const result = await server.validate(accessToken);
   // or to point to a self-hosted location
   apiUrl: string = 'https://api.multiversx.com';
 
-  // An optional list of accepted hosts in case the server component must validate the incoming requests
-  // by domain
-  acceptedHosts: string[] = [];
+  // A mandatory list of accepted origins in case the server component must validate the incoming requests
+  // by domain. At least one value must be provided
+  acceptedOrigins: string[] = [];
 
   // Maximum allowed TTL from the token.
   // Default: one day (86400 seconds)
