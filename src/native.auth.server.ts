@@ -86,7 +86,11 @@ export class NativeAuthServer {
       throw new NativeAuthInvalidTokenTtlError(decoded.ttl, this.config.maxExpirySeconds);
     }
 
-    if (this.config.acceptedOrigins.length > 0 && !this.config.acceptedOrigins.includes(decoded.origin)) {
+    if (
+      this.config.acceptedOrigins.length > 0 &&
+      !this.config.acceptedOrigins.includes(decoded.origin) &&
+      !this.config.acceptedOrigins.includes('https://' + decoded.origin)
+    ) {
       throw new NativeAuthOriginNotAcceptedError();
     }
 
