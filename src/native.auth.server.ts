@@ -122,18 +122,16 @@ export class NativeAuthServer {
 
     const verifier = new UserVerifier(publicKey);
 
-    let valid = false;
+    let valid = verifier.verify(signableMessage);
 
-    if (this.config.skipLegacyValidation) {
-      valid = verifier.verify(signableMessage);
-    } else {
+    if (!valid && !this.config.skipLegacyValidation) {
       const signedMessageLegacy = `${decoded.address}${decoded.body}{}`;
       const signableMessageLegacy = new SignableMessage({
         address: new Address(decoded.address),
         message: Buffer.from(signedMessageLegacy, 'utf8'),
         signature: new NativeAuthSignature(decoded.signature),
       });
-      valid = verifier.verify(signableMessage) || verifier.verify(signableMessageLegacy);
+      valid = verifier.verify(signableMessageLegacy);
     }
 
     if (!valid) {
