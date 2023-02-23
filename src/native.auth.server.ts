@@ -12,12 +12,13 @@ import { UserPublicKey, UserVerifier } from "@multiversx/sdk-wallet";
 import { NativeAuthInvalidTokenTtlError } from "./entities/errors/native.auth.invalid.token.ttl.error";
 import { NativeAuthInvalidTokenError } from "./entities/errors/native.auth.invalid.token.error";
 import { NativeAuthInvalidConfigError } from "./entities/errors/native.auth.invalid.config.error";
+
 export class NativeAuthServer {
   private DEFAULT_API_URL = "https://api.multiversx.com";
   private MAX_EXPIRY_SECONDS = 86400;
 
   constructor(
-    readonly config: NativeAuthServerConfig,
+    readonly config: NativeAuthServerConfig
   ) {
     if (!config.apiUrl) {
       config.apiUrl = this.DEFAULT_API_URL;
@@ -115,19 +116,25 @@ export class NativeAuthServer {
       signature: new NativeAuthSignature(decoded.signature),
     });
 
-    const signedMessageLegacy = `${decoded.address}${decoded.body}{}`;
-    const signableMessageLegacy = new SignableMessage({
-      address: new Address(decoded.address),
-      message: Buffer.from(signedMessageLegacy, 'utf8'),
-      signature: new NativeAuthSignature(decoded.signature),
-    });
-
     const publicKey = new UserPublicKey(
       Address.fromString(decoded.address).pubkey(),
     );
 
     const verifier = new UserVerifier(publicKey);
-    const valid = verifier.verify(signableMessage) || verifier.verify(signableMessageLegacy);
+
+    let valid = false;
+
+    if (this.config.skipLegacyValidation) {
+      valid = verifier.verify(signableMessage);
+    } else {
+      const signedMessageLegacy = `${decoded.address}${decoded.body}{}`;
+      const signableMessageLegacy = new SignableMessage({
+        address: new Address(decoded.address),
+        message: Buffer.from(signedMessageLegacy, 'utf8'),
+        signature: new NativeAuthSignature(decoded.signature),
+      });
+      valid = verifier.verify(signableMessage) || verifier.verify(signableMessageLegacy);
+    }
 
     if (!valid) {
       throw new NativeAuthInvalidSignatureError();
