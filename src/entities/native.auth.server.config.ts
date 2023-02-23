@@ -5,4 +5,5 @@ export class NativeAuthServerConfig {
   acceptedOrigins: string[] = [];
   maxExpirySeconds: number = 86400;
   cache?: NativeAuthCacheInterface;
+  skipLegacyValidation?: boolean;
 }
