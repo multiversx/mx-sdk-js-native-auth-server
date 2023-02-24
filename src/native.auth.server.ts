@@ -1,18 +1,17 @@
 import axios from "axios";
+import * as crypto from "crypto";
 import { NativeAuthInvalidBlockHashError } from "./entities/errors/native.auth.invalid.block.hash.error";
 import { NativeAuthInvalidSignatureError } from "./entities/errors/native.auth.invalid.signature.error";
 import { NativeAuthTokenExpiredError } from "./entities/errors/native.auth.token.expired.error";
 import { NativeAuthServerConfig } from "./entities/native.auth.server.config";
-import { NativeAuthSignature } from "./native.auth.signature";
 import { NativeAuthResult as NativeAuthValidateResult } from "./entities/native.auth.validate.result";
 import { NativeAuthDecoded } from "./entities/native.auth.decoded";
 import { NativeAuthOriginNotAcceptedError } from "./entities/errors/native.auth.origin.not.accepted.error";
 import { SignableMessage, Address } from "@multiversx/sdk-core";
-import { UserPublicKey, UserVerifier } from "@multiversx/sdk-wallet";
 import { NativeAuthInvalidTokenTtlError } from "./entities/errors/native.auth.invalid.token.ttl.error";
 import { NativeAuthInvalidTokenError } from "./entities/errors/native.auth.invalid.token.error";
 import { NativeAuthInvalidConfigError } from "./entities/errors/native.auth.invalid.config.error";
-const crypto = require('crypto');
+
 
 export class NativeAuthServer {
   private DEFAULT_API_URL = "https://api.multiversx.com";
