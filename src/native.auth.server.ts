@@ -12,6 +12,7 @@ import { UserPublicKey, UserVerifier } from "@multiversx/sdk-wallet";
 import { NativeAuthInvalidTokenTtlError } from "./entities/errors/native.auth.invalid.token.ttl.error";
 import { NativeAuthInvalidTokenError } from "./entities/errors/native.auth.invalid.token.error";
 import { NativeAuthInvalidConfigError } from "./entities/errors/native.auth.invalid.config.error";
+const crypto = require('crypto');
 
 export class NativeAuthServer {
   private DEFAULT_API_URL = "https://api.multiversx.com";
@@ -109,29 +110,15 @@ export class NativeAuthServer {
       throw new NativeAuthTokenExpiredError();
     }
 
+    const address = new Address(decoded.address);
+    const signatureBuffer = Buffer.from(decoded.signature, 'hex');
+
     const signedMessage = `${decoded.address}${decoded.body}`;
-    const signableMessage = new SignableMessage({
-      address: new Address(decoded.address),
-      message: Buffer.from(signedMessage, 'utf8'),
-      signature: new NativeAuthSignature(decoded.signature),
-    });
-
-    const publicKey = new UserPublicKey(
-      Address.fromString(decoded.address).pubkey(),
-    );
-
-    const verifier = new UserVerifier(publicKey);
-
-    let valid = verifier.verify(signableMessage);
+    let valid = this.verifySignature(address, signedMessage, signatureBuffer);
 
     if (!valid && !this.config.skipLegacyValidation) {
       const signedMessageLegacy = `${decoded.address}${decoded.body}{}`;
-      const signableMessageLegacy = new SignableMessage({
-        address: new Address(decoded.address),
-        message: Buffer.from(signedMessageLegacy, 'utf8'),
-        signature: new NativeAuthSignature(decoded.signature),
-      });
-      valid = verifier.verify(signableMessageLegacy);
+      valid = this.verifySignature(address, signedMessageLegacy, signatureBuffer);
     }
 
     if (!valid) {
@@ -151,6 +138,23 @@ export class NativeAuthServer {
     }
 
     return result;
+  }
+
+  private verifySignature(address: Address, messageString: string, signature: Buffer): boolean {
+    const cryptoPublicKey = crypto.createPublicKey({
+      format: 'der',
+      type: 'spki',
+      key: this.toDER(address.pubkey()),
+    });
+
+    const signableMessage = new SignableMessage({
+      address,
+      message: Buffer.from(messageString, 'utf8'),
+    });
+
+    const cryptoMessage = Buffer.from(signableMessage.serializeForSigning().toString('hex'), "hex");
+
+    return crypto.verify(null, cryptoMessage, cryptoPublicKey, signature);
   }
 
   private async getCurrentBlockTimestamp(): Promise<number> {
@@ -204,5 +208,34 @@ export class NativeAuthServer {
 
   private unescape(str: string) {
     return str.replace(/-/g, "+").replace(/_/g, "\/");
+  }
+
+  private toDER(key: Buffer) {
+    // Ed25519's OID
+    const oid = Buffer.from([0x06, 0x03, 0x2B, 0x65, 0x70]);
+
+    // Create a byte sequence containing the OID and key
+    const elements = Buffer.concat([
+      Buffer.concat([
+        Buffer.from([0x30]), // Sequence tag
+        Buffer.from([oid.length]),
+        oid,
+      ]),
+      Buffer.concat([
+        Buffer.from([0x03]), // Bit tag
+        Buffer.from([key.length + 1]),
+        Buffer.from([0x00]), // Zero bit
+        key,
+      ]),
+    ]);
+
+    // Wrap up by creating a sequence of elements
+    const der = Buffer.concat([
+      Buffer.from([0x30]), // Sequence tag
+      Buffer.from([elements.length]),
+      elements,
+    ]);
+
+    return der;
   }
 }
