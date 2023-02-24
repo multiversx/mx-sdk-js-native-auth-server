@@ -141,17 +141,17 @@ export class NativeAuthServer {
   }
 
   private verifySignature(address: Address, messageString: string, signature: Buffer): boolean {
-    const message = Buffer.from(messageString, 'utf8');
-    const signableMessage = new SignableMessage({
-      address,
-      message,
-    });
-    const key = this.toDER(address.pubkey());
     const cryptoPublicKey = crypto.createPublicKey({
       format: 'der',
       type: 'spki',
-      key,
+      key: this.toDER(address.pubkey()),
     });
+
+    const signableMessage = new SignableMessage({
+      address,
+      message: Buffer.from(messageString, 'utf8'),
+    });
+
     const cryptoMessage = Buffer.from(signableMessage.serializeForSigning().toString('hex'), "hex");
 
     return crypto.verify(null, cryptoMessage, cryptoPublicKey, signature);
