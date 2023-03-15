@@ -156,6 +156,12 @@ export class NativeAuthServer {
     return crypto.verify(null, cryptoMessage, cryptoPublicKey, signature);
   }
 
+
+  private async get(url: string): Promise<any> {
+    const response = await axios.get(url, { headers: this.config.extraRequestHeaders });
+    return response.data;
+  }
+
   private async getCurrentBlockTimestamp(): Promise<number> {
     if (this.config.cache) {
       const timestamp = await this.config.cache.getValue('block:timestamp:latest');
@@ -164,8 +170,8 @@ export class NativeAuthServer {
       }
     }
 
-    const response = await axios.get(`${this.config.apiUrl}/blocks?size=1&fields=timestamp`);
-    const timestamp = Number(response.data[0].timestamp);
+    const response = await this.get(`${this.config.apiUrl}/blocks?size=1&fields=timestamp`);
+    const timestamp = Number(response[0].timestamp);
 
     if (this.config.cache) {
       await this.config.cache.setValue('block:timestamp:latest', timestamp, 6);
@@ -183,7 +189,7 @@ export class NativeAuthServer {
     }
 
     try {
-      const { data: timestamp } = await axios.get(`${this.config.apiUrl}/blocks/${hash}?extract=timestamp`);
+      const timestamp = await this.get(`${this.config.apiUrl}/blocks/${hash}?extract=timestamp`);
 
       if (this.config.cache) {
         await this.config.cache.setValue(`block:timestamp:${hash}`, Number(timestamp), this.config.maxExpirySeconds);
