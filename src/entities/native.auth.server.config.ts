@@ -6,4 +6,5 @@ export class NativeAuthServerConfig {
   maxExpirySeconds: number = 86400;
   cache?: NativeAuthCacheInterface;
   skipLegacyValidation?: boolean;
+  extraRequestHeaders?: { [key: string]: string };
 }
