@@ -46,6 +46,6 @@
     "bech32": "^2.0.0"
   },
   "peerDependencies": {
-    "@multiversx/sdk-core": "*"
+    "@multiversx/sdk-core": "^12.x"
   }
 }
