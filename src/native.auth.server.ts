@@ -37,6 +37,7 @@ export class NativeAuthServer {
     }
   }
 
+  /** decodes the accessToken in its components: ttl, origin, address, signature, blockHash & body */
   decode(accessToken: string): NativeAuthDecoded {
     const tokenComponents = accessToken.split('.');
     if (tokenComponents.length !== 3) {
@@ -80,6 +81,9 @@ export class NativeAuthServer {
     return result;
   }
 
+  /** decodes and validates the accessToken.
+   * 
+   * Performs validation of the block hash, verifies its validity, as well as origin verification */
   async validate(accessToken: string): Promise<NativeAuthValidateResult> {
     const decoded = this.decode(accessToken);
 
