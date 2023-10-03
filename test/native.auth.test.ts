@@ -237,5 +237,113 @@ describe("Native Auth", () => {
         expires: BLOCK_TIMESTAMP + TTL,
       }));
     });
+
+    it('Origin should be accepted with custom validation', async () => {
+      const server = new NativeAuthServer({
+        ...defaultConfig,
+        acceptedOrigins: ['other-origin'],
+        isOriginAccepted: (origin: string): boolean => {
+          return origin === ORIGIN;
+        },
+      });
+
+      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+      const result = await server.validate(ACCESS_TOKEN);
+      expect(result).toStrictEqual(new NativeAuthResult({
+        address: ADDRESS,
+        issued: BLOCK_TIMESTAMP,
+        expires: BLOCK_TIMESTAMP + TTL,
+        origin: ORIGIN,
+      }));
+    });
+
+    it('Origin should not be accepted with custom validation', async () => {
+      const server = new NativeAuthServer({
+        ...defaultConfig,
+        acceptedOrigins: ['other-origin'],
+        isOriginAccepted: (origin: string): boolean => {
+          return origin !== ORIGIN;
+        },
+      });
+
+      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+      await expect(server.validate(ACCESS_TOKEN)).rejects.toThrow(NativeAuthOriginNotAcceptedError);
+    });
+
+    it('Custom origin validation should be called', async () => {
+      const server = new NativeAuthServer({
+        ...defaultConfig,
+        acceptedOrigins: ['other-origin'],
+        isOriginAccepted: (_origin: string): boolean => true,
+      });
+
+      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+      const isOriginAcceptedMethod = jest.spyOn(server.config, 'isOriginAccepted');
+
+      await server.validate(ACCESS_TOKEN);
+
+      expect(isOriginAcceptedMethod).toHaveBeenCalled();
+    });
+
+    it('Custom origin validation should not be called', async () => {
+      const server = new NativeAuthServer({
+        ...defaultConfig,
+        isOriginAccepted: (_origin: string): boolean => {
+          console.log('aaa');
+          return true;
+        },
+      });
+
+      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+      const isOriginAcceptedMethod = jest.spyOn(server.config, 'isOriginAccepted');
+
+      await server.validate(ACCESS_TOKEN);
+
+      expect(isOriginAcceptedMethod).not.toHaveBeenCalled();
+    });
+
+    it('Custom origin validation should throw', async () => {
+      const server = new NativeAuthServer({
+        ...defaultConfig,
+        acceptedOrigins: ['other-origin'],
+        isOriginAccepted: async (_origin: string): Promise<boolean> => {
+          throw new Error('Custom error');
+        },
+      });
+
+      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+      await expect(server.validate(ACCESS_TOKEN)).rejects.toThrow('Custom error');
+    });
+
+    it('Custom origin validation can be async', async () => {
+      const server = new NativeAuthServer({
+        ...defaultConfig,
+        acceptedOrigins: ['other-origin'],
+        isOriginAccepted: async (_origin: string): Promise<boolean> => {
+          return true;
+        },
+      });
+
+      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+      const result = await server.validate(ACCESS_TOKEN);
+      expect(result).toStrictEqual(new NativeAuthResult({
+        address: ADDRESS,
+        issued: BLOCK_TIMESTAMP,
+        expires: BLOCK_TIMESTAMP + TTL,
+        origin: ORIGIN,
+      }));
+    });
   });
 });

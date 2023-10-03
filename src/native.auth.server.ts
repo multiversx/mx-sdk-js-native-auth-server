@@ -87,11 +87,8 @@ export class NativeAuthServer {
       throw new NativeAuthInvalidTokenTtlError(decoded.ttl, this.config.maxExpirySeconds);
     }
 
-    if (
-      this.config.acceptedOrigins.length > 0 &&
-      !this.config.acceptedOrigins.includes(decoded.origin) &&
-      !this.config.acceptedOrigins.includes('https://' + decoded.origin)
-    ) {
+    const isOriginAccepted = await this.isOriginAccepted(decoded.origin);
+    if (!isOriginAccepted) {
       throw new NativeAuthOriginNotAcceptedError();
     }
 
@@ -242,5 +239,17 @@ export class NativeAuthServer {
     ]);
 
     return der;
+  }
+
+  private async isOriginAccepted(origin: string): Promise<boolean> {
+    const isNotAccepted = this.config.acceptedOrigins.length > 0 &&
+      !this.config.acceptedOrigins.includes(origin) &&
+      !this.config.acceptedOrigins.includes('https://' + origin);
+
+    if (isNotAccepted && this.config.isOriginAccepted) {
+      return await this.config.isOriginAccepted(origin);
+    }
+
+    return !isNotAccepted;
   }
 }
