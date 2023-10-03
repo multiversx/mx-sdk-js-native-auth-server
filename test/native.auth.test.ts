@@ -314,6 +314,7 @@ describe("Native Auth", () => {
       const server = new NativeAuthServer({
         ...defaultConfig,
         acceptedOrigins: ['other-origin'],
+        // eslint-disable-next-line require-await
         isOriginAccepted: async (_origin: string): Promise<boolean> => {
           throw new Error('Custom error');
         },
@@ -329,6 +330,7 @@ describe("Native Auth", () => {
       const server = new NativeAuthServer({
         ...defaultConfig,
         acceptedOrigins: ['other-origin'],
+        // eslint-disable-next-line require-await
         isOriginAccepted: async (_origin: string): Promise<boolean> => {
           return true;
         },
