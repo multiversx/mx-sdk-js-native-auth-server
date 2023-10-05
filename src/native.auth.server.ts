@@ -91,8 +91,8 @@ export class NativeAuthServer {
       throw new NativeAuthInvalidTokenTtlError(decoded.ttl, this.config.maxExpirySeconds);
     }
 
-    const isOriginAccepted = await this.isOriginAccepted(decoded.origin);
-    if (!isOriginAccepted) {
+    const isAccepted = await this.isOriginAccepted(decoded.origin);
+    if (!isAccepted) {
       throw new NativeAuthOriginNotAcceptedError();
     }
 
