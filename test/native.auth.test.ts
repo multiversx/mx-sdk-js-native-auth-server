@@ -295,7 +295,6 @@ describe("Native Auth", () => {
       const server = new NativeAuthServer({
         ...defaultConfig,
         isOriginAccepted: (_origin: string): boolean => {
-          console.log('aaa');
           return true;
         },
       });
