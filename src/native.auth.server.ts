@@ -246,14 +246,15 @@ export class NativeAuthServer {
   }
 
   private async isOriginAccepted(origin: string): Promise<boolean> {
-    const isNotAccepted = this.config.acceptedOrigins.length > 0 &&
-      !this.config.acceptedOrigins.includes(origin) &&
-      !this.config.acceptedOrigins.includes('https://' + origin);
-
-    if (isNotAccepted && this.config.isOriginAccepted) {
-      return await this.config.isOriginAccepted(origin);
+    const isAccepted = this.config.acceptedOrigins.includes(origin) || this.config.acceptedOrigins.includes('https://' + origin);
+    if (isAccepted) {
+      return true;
     }
 
-    return !isNotAccepted;
+    if (!this.config.isOriginAccepted) {
+      return false;
+    }
+
+    return await this.config.isOriginAccepted(origin);
   }
 }
