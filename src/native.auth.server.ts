@@ -251,10 +251,10 @@ export class NativeAuthServer {
       return true;
     }
 
-    if (!this.config.isOriginAccepted) {
-      return false;
+    if (this.config.isOriginAccepted) {
+      return await this.config.isOriginAccepted(origin);
     }
 
-    return await this.config.isOriginAccepted(origin);
+    return false;
   }
 }
