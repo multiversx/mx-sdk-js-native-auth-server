@@ -32,6 +32,10 @@ const result = await server.validate(accessToken);
   // by domain. At least one value must be provided
   acceptedOrigins: string[] = [];
 
+  // An optional function that returns a boolean if the origin received as a parameter is accepted.
+  // This is called only if the origin is not in the list of accepted origins defined in acceptedOrigins
+  isOriginAccepted?: (origin: string) => boolean | Promise<boolean>;
+
   // Maximum allowed TTL from the token.
   // Default: one day (86400 seconds)
   maxExpirySeconds: number = 86400;

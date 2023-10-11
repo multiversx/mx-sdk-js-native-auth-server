@@ -37,6 +37,7 @@ export class NativeAuthServer {
     }
   }
 
+  /** decodes the accessToken in its components: ttl, origin, address, signature, blockHash & body */
   decode(accessToken: string): NativeAuthDecoded {
     const tokenComponents = accessToken.split('.');
     if (tokenComponents.length !== 3) {
@@ -80,6 +81,9 @@ export class NativeAuthServer {
     return result;
   }
 
+  /** decodes and validates the accessToken.
+   * 
+   * Performs validation of the block hash, verifies its validity, as well as origin verification */
   async validate(accessToken: string): Promise<NativeAuthValidateResult> {
     const decoded = this.decode(accessToken);
 
@@ -87,11 +91,8 @@ export class NativeAuthServer {
       throw new NativeAuthInvalidTokenTtlError(decoded.ttl, this.config.maxExpirySeconds);
     }
 
-    if (
-      this.config.acceptedOrigins.length > 0 &&
-      !this.config.acceptedOrigins.includes(decoded.origin) &&
-      !this.config.acceptedOrigins.includes('https://' + decoded.origin)
-    ) {
+    const isAccepted = await this.isOriginAccepted(decoded.origin);
+    if (!isAccepted) {
       throw new NativeAuthOriginNotAcceptedError();
     }
 
@@ -242,5 +243,18 @@ export class NativeAuthServer {
     ]);
 
     return der;
+  }
+
+  private async isOriginAccepted(origin: string): Promise<boolean> {
+    const isAccepted = this.config.acceptedOrigins.includes(origin) || this.config.acceptedOrigins.includes('https://' + origin);
+    if (isAccepted) {
+      return true;
+    }
+
+    if (this.config.isOriginAccepted) {
+      return await this.config.isOriginAccepted(origin);
+    }
+
+    return false;
   }
 }
