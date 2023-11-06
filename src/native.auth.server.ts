@@ -142,7 +142,7 @@ export class NativeAuthServer {
 
   private verifySignature(address: Address, messageString: string, signature: Buffer): boolean {
     if (this.config.verifySignature) {
-      return this.config.verifySignature(address, messageString, signature);
+      return this.config.verifySignature(address.bech32(), messageString, signature);
     }
 
     const cryptoPublicKey = crypto.createPublicKey({
