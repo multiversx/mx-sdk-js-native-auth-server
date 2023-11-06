@@ -35,5 +35,5 @@ export class NativeAuthServerConfig {
   /** An optional function that returns a boolean if the signature is valid.
    *
    * This is called only if you want to override the signature verification method */
-  verifySignature?: (address: string, messageString: string, signature: Buffer) => boolean;
+  verifySignature?: (address: string, messageString: string, signature: Buffer) => boolean | Promise<boolean>;
 }
