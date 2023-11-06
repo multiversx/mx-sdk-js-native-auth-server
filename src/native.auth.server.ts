@@ -114,11 +114,11 @@ export class NativeAuthServer {
     const signatureBuffer = Buffer.from(decoded.signature, 'hex');
 
     const signedMessage = `${decoded.address}${decoded.body}`;
-    let valid = this.verifySignature(address, signedMessage, signatureBuffer);
+    let valid = await this.verifySignature(address, signedMessage, signatureBuffer);
 
     if (!valid && !this.config.skipLegacyValidation) {
       const signedMessageLegacy = `${decoded.address}${decoded.body}{}`;
-      valid = this.verifySignature(address, signedMessageLegacy, signatureBuffer);
+      valid = await this.verifySignature(address, signedMessageLegacy, signatureBuffer);
     }
 
     if (!valid) {
