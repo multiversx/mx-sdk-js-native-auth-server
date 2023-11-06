@@ -1,4 +1,5 @@
 import { NativeAuthCacheInterface } from "../native.auth.cache.interface";
+import { Address } from "@multiversx/sdk-core";
 
 export class NativeAuthServerConfig {
   /** The endpoint from where the current block information will be fetched upon validation.
@@ -30,4 +31,9 @@ export class NativeAuthServerConfig {
   skipLegacyValidation?: boolean;
 
   extraRequestHeaders?: { [key: string]: string };
+
+  /** An optional function that returns a boolean if the signature is valid.
+   *
+   * This is called only if you want to override the signature verification method */
+  verifySignature?: (address: string, messageString: string, signature: Buffer) => boolean;
 }
