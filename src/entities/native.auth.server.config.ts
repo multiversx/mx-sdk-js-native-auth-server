@@ -34,6 +34,6 @@ export class NativeAuthServerConfig {
 
   /** An optional function that returns a boolean if the signature is valid.
    *
-   * This is called only if the package is used on the client-side to avoid runtime errors caused by the `crypto` package from Node.JS */
+   * This is called only if you want to override the signature verification method */
   verifySignature?: (address: Address, messageString: string, signature: Buffer) => boolean;
 }
