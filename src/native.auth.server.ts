@@ -114,15 +114,11 @@ export class NativeAuthServer {
     const signatureBuffer = Buffer.from(decoded.signature, 'hex');
 
     const signedMessage = `${decoded.address}${decoded.body}`;
-    let valid = this.config.verifySignature ?
-        this.config.verifySignature(address, signedMessage, signatureBuffer) :
-        this.verifySignature(address, signedMessage, signatureBuffer);
+    let valid = this.verifySignature(address, signedMessage, signatureBuffer);
 
     if (!valid && !this.config.skipLegacyValidation) {
       const signedMessageLegacy = `${decoded.address}${decoded.body}{}`;
-      valid = this.config.verifySignature ?
-          this.config.verifySignature(address, signedMessageLegacy, signatureBuffer) :
-          this.verifySignature(address, signedMessageLegacy, signatureBuffer);
+      valid = this.verifySignature(address, signedMessageLegacy, signatureBuffer);
     }
 
     if (!valid) {
@@ -145,6 +141,10 @@ export class NativeAuthServer {
   }
 
   private verifySignature(address: Address, messageString: string, signature: Buffer): boolean {
+    if (this.config.verifySignature) {
+      return this.config.verifySignature(address, messageString, signature);
+    }
+
     const cryptoPublicKey = crypto.createPublicKey({
       format: 'der',
       type: 'spki',
