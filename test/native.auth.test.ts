@@ -1,5 +1,5 @@
 import axios from "axios";
-import MockAdapter, { RequestHandler } from "axios-mock-adapter";
+import { RequestHandler } from "axios-mock-adapter";
 import { NativeAuthInvalidBlockHashError } from "../src/entities/errors/native.auth.invalid.block.hash.error";
 import { NativeAuthInvalidSignatureError } from "../src/entities/errors/native.auth.invalid.signature.error";
 import { NativeAuthTokenExpiredError } from "../src/entities/errors/native.auth.token.expired.error";
@@ -7,6 +7,7 @@ import { NativeAuthDecoded } from "../src/entities/native.auth.decoded";
 import { NativeAuthResult } from "../src/entities/native.auth.validate.result";
 import { NativeAuthInvalidConfigError, NativeAuthInvalidTokenError, NativeAuthInvalidTokenTtlError, NativeAuthServer, NativeAuthServerConfig } from '../src';
 import { NativeAuthOriginNotAcceptedError } from "../src/entities/errors/native.auth.origin.not.accepted.error";
+import MockAdapter = require("axios-mock-adapter");
 
 describe("Native Auth", () => {
   let mock: MockAdapter;
