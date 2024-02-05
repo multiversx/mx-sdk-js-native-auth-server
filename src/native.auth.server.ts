@@ -120,12 +120,10 @@ export class NativeAuthServer {
     const signatureBuffer = Buffer.from(decoded.signature, 'hex');
 
     const signedMessage = `${decoded.address}${decoded.body}`;
-    console.log({ signedMessage });
     let valid = await this.verifySignature(address, signedMessage, signatureBuffer);
 
     if (!valid && !this.config.skipLegacyValidation) {
       const signedMessageLegacy = `${decoded.address}${decoded.body}{}`;
-      console.log({ signedMessageLegacy });
       valid = await this.verifySignature(address, signedMessageLegacy, signatureBuffer);
     }
 
@@ -160,8 +158,6 @@ export class NativeAuthServer {
     }
 
     const url = `${this.config.validateImpersonateUrl}/${decoded.address}/${impersonateAddress}`;
-
-    console.log({ url });
 
     try {
       await axios.get(url);
