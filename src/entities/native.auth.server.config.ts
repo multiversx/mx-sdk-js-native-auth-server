@@ -8,6 +8,9 @@ export class NativeAuthServerConfig {
    * or to point to a self-hosted location */
   apiUrl?: string;
 
+  /** The endpoint where the impersonation is validated */
+  validateImpersonateUrl?: string;
+
   /** A mandatory list of accepted origins in case the server component must validate the
    * incoming requests by domain.
    * 

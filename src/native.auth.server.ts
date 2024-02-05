@@ -11,10 +11,12 @@ import { SignableMessage, Address } from "@multiversx/sdk-core";
 import { NativeAuthInvalidTokenTtlError } from "./entities/errors/native.auth.invalid.token.ttl.error";
 import { NativeAuthInvalidTokenError } from "./entities/errors/native.auth.invalid.token.error";
 import { NativeAuthInvalidConfigError } from "./entities/errors/native.auth.invalid.config.error";
+import { NativeAuthInvalidImpersonateError } from "./entities/errors/native.auth.invalid.impersonate.error";
 
 
 export class NativeAuthServer {
   private DEFAULT_API_URL = "https://api.multiversx.com";
+  private DEFAULT_VALIDATE_IMPERSONATE_URL = 'https://extras-api.multiversx.com/impersonate/allowed';
   private MAX_EXPIRY_SECONDS = 86400;
 
   constructor(
@@ -22,6 +24,10 @@ export class NativeAuthServer {
   ) {
     if (!config.apiUrl) {
       config.apiUrl = this.DEFAULT_API_URL;
+    }
+
+    if (!config.validateImpersonateUrl) {
+      config.validateImpersonateUrl = this.DEFAULT_VALIDATE_IMPERSONATE_URL;
     }
 
     if (!(config.maxExpirySeconds > 0 && config.maxExpirySeconds <= this.MAX_EXPIRY_SECONDS)) {
@@ -114,15 +120,22 @@ export class NativeAuthServer {
     const signatureBuffer = Buffer.from(decoded.signature, 'hex');
 
     const signedMessage = `${decoded.address}${decoded.body}`;
+    console.log({ signedMessage });
     let valid = await this.verifySignature(address, signedMessage, signatureBuffer);
 
     if (!valid && !this.config.skipLegacyValidation) {
       const signedMessageLegacy = `${decoded.address}${decoded.body}{}`;
+      console.log({ signedMessageLegacy });
       valid = await this.verifySignature(address, signedMessageLegacy, signatureBuffer);
     }
 
     if (!valid) {
       throw new NativeAuthInvalidSignatureError();
+    }
+
+    const impersonateAddress = await this.validateImpersonateAddress(decoded);
+    if (impersonateAddress) {
+      decoded.address = impersonateAddress;
     }
 
     const result = new NativeAuthValidateResult({
@@ -138,6 +151,25 @@ export class NativeAuthServer {
     }
 
     return result;
+  }
+
+  private async validateImpersonateAddress(decoded: NativeAuthDecoded): Promise<string | undefined> {
+    const impersonateAddress = decoded.extraInfo?.multisig;
+    if (!impersonateAddress) {
+      return undefined;
+    }
+
+    const url = `${this.config.validateImpersonateUrl}/${decoded.address}/${impersonateAddress}`;
+
+    console.log({ url });
+
+    try {
+      await axios.get(url);
+
+      return impersonateAddress;
+    } catch (error) {
+      throw new NativeAuthInvalidImpersonateError();
+    }
   }
 
   private async verifySignature(address: Address, messageString: string, signature: Buffer): Promise<boolean> {
