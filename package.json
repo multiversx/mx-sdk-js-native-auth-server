@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@multiversx/sdk-wallet": "^2.1.1",
-    "axios": "^1.6.2",
+    "axios": "^1.6.5",
     "bech32": "^2.0.0"
   },
   "peerDependencies": {
