@@ -152,7 +152,7 @@ export class NativeAuthServer {
   }
 
   private async validateImpersonateAddress(decoded: NativeAuthDecoded): Promise<string | undefined> {
-    const impersonateAddress = decoded.extraInfo?.multisig;
+    const impersonateAddress = decoded.extraInfo?.multisig ?? decoded.extraInfo?.impersonate;
     if (!impersonateAddress) {
       return undefined;
     }
