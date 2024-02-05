@@ -22,6 +22,7 @@ describe("Native Auth", () => {
   const ORIGIN = 'https://api.multiversx.com';
 
   const MULTISIG_ACCESS_TOKEN = 'ZXJkMXFuazJ2bXVxeXdmcXRkbmttYXV2cG04bHMweGgwMGs4eGV1cHVhZjZjbTZjZDRyeDg5cXF6MHBwZ2w.YUhSMGNITTZMeTloY0drdWJYVnNkR2wyWlhKemVDNWpiMjAuYWI0NTkwMTNiMjdmZGM2ZmU5OGVlZDU2N2JkMGMxNzU0ZTA2MjhhNGNjMTY4ODNiZjAxNzBhMjlkYTM3YWQ0Ni44NjQwMC5leUp0ZFd4MGFYTnBaeUk2SW1WeVpERnhjWEZ4Y1hGeGNYRnhjWEZ4Y0dkeE9UUTBhRGRvTm0xamEzYzJjVEJrTTJjeU1qTmphbm8wZVhSMmEyVnVPRFoxTURCemVqZGpZWEozSW4w.b38b3766de5fcc9f66b1bb65662404238b1eddad18436bea39a694db591dc27bc2a66c62c4dfec3ce09021de83d324cd5f4e49a329833c67baafdd71ab2f750b';
+  const IMPERSONATE_ACCESS_TOKEN = 'ZXJkMXFuazJ2bXVxeXdmcXRkbmttYXV2cG04bHMweGgwMGs4eGV1cHVhZjZjbTZjZDRyeDg5cXF6MHBwZ2w.YUhSMGNITTZMeTloY0drdWJYVnNkR2wyWlhKemVDNWpiMjAuYWI0NTkwMTNiMjdmZGM2ZmU5OGVlZDU2N2JkMGMxNzU0ZTA2MjhhNGNjMTY4ODNiZjAxNzBhMjlkYTM3YWQ0Ni44NjQwMC5leUpwYlhCbGNuTnZibUYwWlNJNkltVnlaREZ4Y1hGeGNYRnhjWEZ4Y1hGeGNHZHhPVFEwYURkb05tMWphM2MyY1RCa00yY3lNak5qYW5vMGVYUjJhMlZ1T0RaMU1EQnplamRqWVhKM0luMA.91c5ee2f4020f0c1f098331760c6963b6b300dc3002d9caa9479d8d1509edf4c44ee518d8f19506830232d76b5baeee5ab6f442354dac69a35e69c290b638d04';
   const MULTISIG_ADDRESS = 'erd1qqqqqqqqqqqqqpgq944h7h6mckw6q0d3g223cjz4ytvken86u00sz7carw';
 
   const defaultConfig: NativeAuthServerConfig = {
@@ -357,7 +358,7 @@ describe("Native Auth", () => {
       }));
     });
 
-    it('Simple validation for impersonate', async () => {
+    it('Simple validation for multisig key', async () => {
       const server = new NativeAuthServer(defaultConfig);
 
       onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
@@ -376,6 +377,26 @@ describe("Native Auth", () => {
         },
       }));
     });
+  });
+
+  it('Simple validation for impersonate key', async () => {
+    const server = new NativeAuthServer(defaultConfig);
+
+    onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+    onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+    onSpecificImpersonateGet(mock).reply(200, true);
+
+    const result = await server.validate(IMPERSONATE_ACCESS_TOKEN);
+
+    expect(result).toStrictEqual(new NativeAuthResult({
+      address: MULTISIG_ADDRESS,
+      origin: ORIGIN,
+      issued: BLOCK_TIMESTAMP,
+      expires: BLOCK_TIMESTAMP + TTL,
+      extraInfo: {
+        impersonate: MULTISIG_ADDRESS,
+      },
+    }));
   });
 
   it('Impersonate request fails', async () => {
