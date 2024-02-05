@@ -28,6 +28,11 @@ const result = await server.validate(accessToken);
   // or to point to a self-hosted location
   apiUrl: string = 'https://api.multiversx.com';
 
+  // The endpoint where the impersonation information should be fetched
+  // The endpoint will be appended with the following <IMPERSONATE_URL>/SIGNER_ADDRESS/IMPERSONATE_ADDRESS
+  // The endpoint should return 200 if it's allowed or 403 Forbidden if it's not allowed
+  impersonateUrl: string = 'https://extras-api.multiversx.com/impersonate/allowed';
+
   // A mandatory list of accepted origins in case the server component must validate the incoming requests
   // by domain. At least one value must be provided
   acceptedOrigins: string[] = [];

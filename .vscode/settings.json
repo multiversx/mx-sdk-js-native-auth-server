@@ -2,9 +2,7 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
-  "eslint.validate": [
-    "javascript"
-  ],
+  "eslint.validate": ["javascript"],
   "editor.formatOnSave": true,
   "files.exclude": {
     "**/.git": true,
@@ -12,12 +10,12 @@
     "**/node_modules": true,
     "**/coverage": true,
     "**/dist": true,
-    "**/config/config.yaml": true,
+    "**/config/config.yaml": true
   },
   "search.exclude": {
     "**/node_modules": true,
     "**/coverage": true,
-    "**/dist": true,
+    "**/dist": true
   },
   "search.useIgnoreFiles": false
 }
