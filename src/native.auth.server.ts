@@ -132,16 +132,14 @@ export class NativeAuthServer {
     }
 
     const impersonateAddress = await this.validateImpersonateAddress(decoded);
-    if (impersonateAddress) {
-      decoded.address = impersonateAddress;
-    }
 
     const result = new NativeAuthValidateResult({
       issued: blockTimestamp,
       expires,
       origin: decoded.origin,
-      address: decoded.address,
+      address: impersonateAddress ?? decoded.address,
       extraInfo: decoded.extraInfo,
+      signerAddress: decoded.address,
     });
 
     if (!decoded.extraInfo) {

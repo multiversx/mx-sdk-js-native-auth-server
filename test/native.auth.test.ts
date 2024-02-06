@@ -101,6 +101,7 @@ describe("Native Auth", () => {
 
       expect(result).toStrictEqual(new NativeAuthResult({
         address: ADDRESS,
+        signerAddress: ADDRESS,
         origin: ORIGIN,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
@@ -117,6 +118,7 @@ describe("Native Auth", () => {
 
       expect(result).toStrictEqual(new NativeAuthResult({
         address: ADDRESS,
+        signerAddress: ADDRESS,
         origin: ORIGIN,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
@@ -133,6 +135,7 @@ describe("Native Auth", () => {
 
       expect(result).toStrictEqual(new NativeAuthResult({
         address: ADDRESS,
+        signerAddress: ADDRESS,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
         origin: ORIGIN,
@@ -217,6 +220,7 @@ describe("Native Auth", () => {
 
       expect(result).toStrictEqual(new NativeAuthResult({
         address: ADDRESS,
+        signerAddress: ADDRESS,
         origin: ORIGIN,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
@@ -243,6 +247,7 @@ describe("Native Auth", () => {
 
       expect(result).toStrictEqual(new NativeAuthResult({
         address: ADDRESS,
+        signerAddress: ADDRESS,
         origin: ORIGIN,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
@@ -264,6 +269,7 @@ describe("Native Auth", () => {
       const result = await server.validate(ACCESS_TOKEN);
       expect(result).toStrictEqual(new NativeAuthResult({
         address: ADDRESS,
+        signerAddress: ADDRESS,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
         origin: ORIGIN,
@@ -352,6 +358,7 @@ describe("Native Auth", () => {
       const result = await server.validate(ACCESS_TOKEN);
       expect(result).toStrictEqual(new NativeAuthResult({
         address: ADDRESS,
+        signerAddress: ADDRESS,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
         origin: ORIGIN,
@@ -369,6 +376,7 @@ describe("Native Auth", () => {
 
       expect(result).toStrictEqual(new NativeAuthResult({
         address: MULTISIG_ADDRESS,
+        signerAddress: ADDRESS,
         origin: ORIGIN,
         issued: BLOCK_TIMESTAMP,
         expires: BLOCK_TIMESTAMP + TTL,
@@ -390,6 +398,7 @@ describe("Native Auth", () => {
 
     expect(result).toStrictEqual(new NativeAuthResult({
       address: MULTISIG_ADDRESS,
+      signerAddress: ADDRESS,
       origin: ORIGIN,
       issued: BLOCK_TIMESTAMP,
       expires: BLOCK_TIMESTAMP + TTL,
