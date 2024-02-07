@@ -14,7 +14,7 @@ export class NativeAuthServerConfig {
   */
   validateImpersonateUrl?: string;
 
-  /** An optioinal function that returns a boolean if the impersonation is accepted
+  /** An optional function that returns a boolean if the impersonation is accepted
    * 
    * This is called if the extraInfo payload contains the `multisig` or `impersonate` attribute.
    */

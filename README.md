@@ -33,7 +33,7 @@ const result = await server.validate(accessToken);
   // The endpoint should return 200 if it's allowed or 403 Forbidden if it's not allowed
   validateImpersonateUrl: string = 'https://extras-api.multiversx.com/impersonate/allowed';
 
-  // An optioinal function that returns a boolean if the impersonation is accepted
+  // An optional function that returns a boolean if the impersonation is accepted
   // This is called if the extraInfo payload contains the `multisig` or `impersonate` attribute.
   validateImpersonateCallback: (signerAddress: string, impersonateAddress: string) => boolean | Promise<boolean>;
 
