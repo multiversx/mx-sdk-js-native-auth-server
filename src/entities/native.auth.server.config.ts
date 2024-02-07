@@ -8,8 +8,17 @@ export class NativeAuthServerConfig {
    * or to point to a self-hosted location */
   apiUrl?: string;
 
-  /** The endpoint where the impersonation is validated */
+  /** The endpoint where the impersonation is validated 
+   * 
+   * This is called if the extraInfo payload contains the `multisig` or `impersonate` attribute.
+  */
   validateImpersonateUrl?: string;
+
+  /** An optioinal function that returns a boolean if the impersonation is accepted
+   * 
+   * This is called if the extraInfo payload contains the `multisig` or `impersonate` attribute.
+   */
+  validateImpersonateCallback?: (signerAddress: string, impersonateAddress: string) => boolean | Promise<boolean>;
 
   /** A mandatory list of accepted origins in case the server component must validate the
    * incoming requests by domain.
