@@ -365,7 +365,7 @@ describe("Native Auth", () => {
       }));
     });
 
-    it('Simple validation for multisig key', async () => {
+    it('Simple validation for multisig key via api', async () => {
       const server = new NativeAuthServer(defaultConfig);
 
       onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
@@ -387,12 +387,58 @@ describe("Native Auth", () => {
     });
   });
 
-  it('Simple validation for impersonate key', async () => {
+  it('Simple validation for impersonate key via api', async () => {
     const server = new NativeAuthServer(defaultConfig);
 
     onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
     onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
     onSpecificImpersonateGet(mock).reply(200, true);
+
+    const result = await server.validate(IMPERSONATE_ACCESS_TOKEN);
+
+    expect(result).toStrictEqual(new NativeAuthResult({
+      address: MULTISIG_ADDRESS,
+      signerAddress: ADDRESS,
+      origin: ORIGIN,
+      issued: BLOCK_TIMESTAMP,
+      expires: BLOCK_TIMESTAMP + TTL,
+      extraInfo: {
+        impersonate: MULTISIG_ADDRESS,
+      },
+    }));
+  });
+
+  it('Simple validation for impersonate key via callback synchronously', async () => {
+    const server = new NativeAuthServer({
+      ...defaultConfig,
+      validateImpersonateCallback: () => true,
+    });
+
+    onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+    onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+    const result = await server.validate(IMPERSONATE_ACCESS_TOKEN);
+
+    expect(result).toStrictEqual(new NativeAuthResult({
+      address: MULTISIG_ADDRESS,
+      signerAddress: ADDRESS,
+      origin: ORIGIN,
+      issued: BLOCK_TIMESTAMP,
+      expires: BLOCK_TIMESTAMP + TTL,
+      extraInfo: {
+        impersonate: MULTISIG_ADDRESS,
+      },
+    }));
+  });
+
+  it('Simple validation for impersonate key via callback asynchronously', async () => {
+    const server = new NativeAuthServer({
+      ...defaultConfig,
+      validateImpersonateCallback: () => Promise.resolve(true),
+    });
+
+    onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+    onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
 
     const result = await server.validate(IMPERSONATE_ACCESS_TOKEN);
 

@@ -155,6 +155,15 @@ export class NativeAuthServer {
       return undefined;
     }
 
+    if (this.config.validateImpersonateCallback) {
+      const isValid = await this.config.validateImpersonateCallback(decoded.address, impersonateAddress);
+      if (isValid) {
+        return impersonateAddress;
+      }
+
+      throw new NativeAuthInvalidImpersonateError();
+    }
+
     const url = `${this.config.validateImpersonateUrl}/${decoded.address}/${impersonateAddress}`;
 
     try {

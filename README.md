@@ -31,7 +31,11 @@ const result = await server.validate(accessToken);
   // The endpoint where the impersonation information should be fetched
   // The endpoint will be appended with the following <IMPERSONATE_URL>/SIGNER_ADDRESS/IMPERSONATE_ADDRESS
   // The endpoint should return 200 if it's allowed or 403 Forbidden if it's not allowed
-  impersonateUrl: string = 'https://extras-api.multiversx.com/impersonate/allowed';
+  validateImpersonateUrl: string = 'https://extras-api.multiversx.com/impersonate/allowed';
+
+  // An optional function that returns a boolean if the impersonation is accepted
+  // This is called if the extraInfo payload contains the `multisig` or `impersonate` attribute.
+  validateImpersonateCallback: (signerAddress: string, impersonateAddress: string) => boolean | Promise<boolean>;
 
   // A mandatory list of accepted origins in case the server component must validate the incoming requests
   // by domain. At least one value must be provided
