@@ -29,6 +29,7 @@ describe("Native Auth", () => {
     acceptedOrigins: ['https://api.multiversx.com'],
     maxExpirySeconds: 86400,
     apiUrl: 'https://api.multiversx.com',
+    validateImpersonateUrl: 'https://extras-api.multiversx.com/impersonate/allowed',
   };
 
   const onLatestBlockTimestampGet = function (mock: MockAdapter): RequestHandler {
@@ -462,5 +463,85 @@ describe("Native Auth", () => {
     onSpecificImpersonateGet(mock).reply(403);
 
     await expect(server.validate(MULTISIG_ACCESS_TOKEN)).rejects.toThrow(NativeAuthInvalidImpersonateError);
+  });
+
+  it('Impersonate caching hit', async () => {
+    const server = new NativeAuthServer({
+      ...defaultConfig,
+      cache: {
+        getValue: (key: string) => {
+          if (key === `impersonate:${ADDRESS}:${MULTISIG_ADDRESS}`) {
+            return Promise.resolve(1);
+          }
+
+          if (key === `block:timestamp:${BLOCK_HASH}`) {
+            return Promise.resolve(BLOCK_TIMESTAMP);
+          }
+
+          if (key === 'block:timestamp:latest') {
+            return Promise.resolve(BLOCK_TIMESTAMP);
+          }
+
+          throw new Error(`Key '${key}' not mocked`);
+        },
+        setValue: (key: string, value: number, ttl: number) => {
+          return Promise.resolve();
+        },
+      },
+    });
+
+    const result = await server.validate(IMPERSONATE_ACCESS_TOKEN);
+
+    expect(result).toStrictEqual(new NativeAuthResult({
+      address: MULTISIG_ADDRESS,
+      signerAddress: ADDRESS,
+      origin: ORIGIN,
+      issued: BLOCK_TIMESTAMP,
+      expires: BLOCK_TIMESTAMP + TTL,
+      extraInfo: {
+        impersonate: MULTISIG_ADDRESS,
+      },
+    }));
+  });
+
+  it('Impersonate caching miss', async () => {
+    const server = new NativeAuthServer({
+      ...defaultConfig,
+      cache: {
+        getValue: (key: string) => {
+          if (key === `impersonate:${ADDRESS}:${MULTISIG_ADDRESS}`) {
+            return Promise.resolve(undefined);
+          }
+
+          if (key === `block:timestamp:${BLOCK_HASH}`) {
+            return Promise.resolve(BLOCK_TIMESTAMP);
+          }
+
+          if (key === 'block:timestamp:latest') {
+            return Promise.resolve(BLOCK_TIMESTAMP);
+          }
+
+          throw new Error(`Key '${key}' not mocked`);
+        },
+        setValue: (key: string, value: number, ttl: number) => {
+          return Promise.resolve();
+        },
+      },
+    });
+
+    onSpecificImpersonateGet(mock).reply(200, true);
+
+    const result = await server.validate(IMPERSONATE_ACCESS_TOKEN);
+
+    expect(result).toStrictEqual(new NativeAuthResult({
+      address: MULTISIG_ADDRESS,
+      signerAddress: ADDRESS,
+      origin: ORIGIN,
+      issued: BLOCK_TIMESTAMP,
+      expires: BLOCK_TIMESTAMP + TTL,
+      extraInfo: {
+        impersonate: MULTISIG_ADDRESS,
+      },
+    }));
   });
 });
