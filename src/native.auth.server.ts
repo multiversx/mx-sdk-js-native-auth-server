@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { HttpStatusCode } from "axios";
 import * as crypto from "crypto";
 import { NativeAuthInvalidBlockHashError } from "./entities/errors/native.auth.invalid.block.hash.error";
 import { NativeAuthInvalidSignatureError } from "./entities/errors/native.auth.invalid.signature.error";
@@ -16,18 +16,14 @@ import { NativeAuthInvalidImpersonateError } from "./entities/errors/native.auth
 
 export class NativeAuthServer {
   private DEFAULT_API_URL = "https://api.multiversx.com";
-  private DEFAULT_VALIDATE_IMPERSONATE_URL = 'https://extras-api.multiversx.com/impersonate/allowed';
   private MAX_EXPIRY_SECONDS = 86400;
+  private ONE_HOUR = 3600;
 
   constructor(
     readonly config: NativeAuthServerConfig
   ) {
     if (!config.apiUrl) {
       config.apiUrl = this.DEFAULT_API_URL;
-    }
-
-    if (!config.validateImpersonateUrl) {
-      config.validateImpersonateUrl = this.DEFAULT_VALIDATE_IMPERSONATE_URL;
     }
 
     if (!(config.maxExpirySeconds > 0 && config.maxExpirySeconds <= this.MAX_EXPIRY_SECONDS)) {
@@ -160,18 +156,49 @@ export class NativeAuthServer {
       if (isValid) {
         return impersonateAddress;
       }
-
-      throw new NativeAuthInvalidImpersonateError();
     }
 
-    const url = `${this.config.validateImpersonateUrl}/${decoded.address}/${impersonateAddress}`;
+    if (this.config.validateImpersonateUrl) {
+      const isValid = await this.validateImpersonateAddressFromUrl(decoded.address, impersonateAddress);
+      if (isValid) {
+        return impersonateAddress;
+      }
+    }
+
+    throw new NativeAuthInvalidImpersonateError();
+  }
+
+  private async validateImpersonateAddressFromUrl(address: string, impersonateAddress: string): Promise<string | undefined> {
+    const cacheKey = `impersonate:${address}:${impersonateAddress}`;
+
+    if (this.config.cache) {
+      const cachedValue = await this.config.cache.getValue(cacheKey);
+      if (cachedValue === 1) {
+        return impersonateAddress;
+      }
+    }
+
+    const url = `${this.config.validateImpersonateUrl}/${address}/${impersonateAddress}`;
 
     try {
       await axios.get(url);
 
+      if (this.config.cache) {
+        await this.config.cache.setValue(cacheKey, 1, this.ONE_HOUR);
+      }
+
       return impersonateAddress;
     } catch (error) {
-      throw new NativeAuthInvalidImpersonateError();
+      // if the error is forbidden, we can cache the result
+      if (axios.isAxiosError(error) && error.response?.status === HttpStatusCode.Forbidden) {
+        if (this.config.cache) {
+          await this.config.cache.setValue(cacheKey, 0, this.ONE_HOUR);
+        }
+
+        throw new NativeAuthInvalidImpersonateError();
+      }
+
+      throw error;
     }
   }
 
