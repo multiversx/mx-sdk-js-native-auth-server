@@ -1,6 +1,6 @@
 {
   "name": "@multiversx/sdk-native-auth-server",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "Native authentication server-side",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",
@@ -40,11 +40,11 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "@multiversx/sdk-wallet": "^4.4.0",
-    "axios": "^1.6.8",
+    "@multiversx/sdk-wallet": "^4.5.0",
+    "axios": "^1.7.2",
     "bech32": "^2.0.0"
   },
   "peerDependencies": {
-    "@multiversx/sdk-core": "^12.x"
+    "@multiversx/sdk-core": "^13.x"
   }
 }
