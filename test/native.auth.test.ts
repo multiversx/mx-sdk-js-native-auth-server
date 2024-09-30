@@ -9,6 +9,7 @@ import { NativeAuthInvalidConfigError, NativeAuthInvalidTokenError, NativeAuthIn
 import { NativeAuthOriginNotAcceptedError } from "../src/entities/errors/native.auth.origin.not.accepted.error";
 import MockAdapter = require("axios-mock-adapter");
 import { NativeAuthInvalidImpersonateError } from "../src/entities/errors/native.auth.invalid.impersonate.error";
+import { NativeAuthInvalidWildcardOriginError } from "../src/entities/errors/native.auth.invalid.wildcard.origin.error";
 
 describe("Native Auth", () => {
   let mock: MockAdapter;
@@ -291,6 +292,24 @@ describe("Native Auth", () => {
         expires: BLOCK_TIMESTAMP + TTL,
         origin: ORIGIN,
       }));
+    });
+
+    it('Wildcard validation two wildcards not accepted', () => {
+      const config: NativeAuthServerConfig = {
+        ...defaultConfig,
+        acceptedOrigins: ['*.multiversx*.com'],
+      };
+
+      expect(() => new NativeAuthServer(config)).toThrow(NativeAuthInvalidWildcardOriginError);
+    });
+
+    it('Wildcard validation protocol not accepted', () => {
+      const config: NativeAuthServerConfig = {
+        ...defaultConfig,
+        acceptedOrigins: ['www.*.multiversx.com'],
+      };
+
+      expect(() => new NativeAuthServer(config)).toThrow(NativeAuthInvalidWildcardOriginError);
     });
 
     it('Wildcard origin is not accepted', async () => {

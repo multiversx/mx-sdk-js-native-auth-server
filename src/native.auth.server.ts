@@ -13,6 +13,7 @@ import { NativeAuthInvalidTokenError } from "./entities/errors/native.auth.inval
 import { NativeAuthInvalidConfigError } from "./entities/errors/native.auth.invalid.config.error";
 import { NativeAuthInvalidImpersonateError } from "./entities/errors/native.auth.invalid.impersonate.error";
 import { WildcardOrigin } from "./entities/wildcard.origin";
+import { NativeAuthInvalidWildcardOriginError } from "./entities/errors/native.auth.invalid.wildcard.origin.error";
 
 
 export class NativeAuthServer {
@@ -22,7 +23,7 @@ export class NativeAuthServer {
 
   private readonly acceptedWildcardOrigins = new Set<string>();
 
-  private wildcardOrigins: WildcardOrigin[] | undefined = undefined;
+  private readonly wildcardOrigins: WildcardOrigin[] = [];
 
   constructor(
     readonly config: NativeAuthServerConfig
@@ -42,6 +43,8 @@ export class NativeAuthServer {
     if (!config.acceptedOrigins || config.acceptedOrigins.length === 0) {
       throw new NativeAuthInvalidConfigError('at least one value must be specified in the acceptedOrigins array');
     }
+
+    this.wildcardOrigins = this.getWildcardOrigins();
   }
 
   /** decodes the accessToken in its components: ttl, origin, address, signature, blockHash & body */
@@ -338,12 +341,11 @@ export class NativeAuthServer {
       return true;
     }
 
-    const wildcardOrigins = this.getWildcardOrigins();
-    if (wildcardOrigins.length === 0) {
+    if (this.wildcardOrigins.length === 0) {
       return false;
     }
 
-    const wildcardOrigin = wildcardOrigins.find(o => origin.startsWith(o.protocol) && origin.endsWith(o.domain));
+    const wildcardOrigin = this.wildcardOrigins.find(o => origin.startsWith(o.protocol) && origin.endsWith(o.domain));
     if (!wildcardOrigin) {
       return false;
     }
@@ -359,17 +361,28 @@ export class NativeAuthServer {
 
 
   private getWildcardOrigins(): WildcardOrigin[] {
-    if (!this.wildcardOrigins) {
-      const originsWithWildcard = this.config.acceptedOrigins.filter(o => o.includes('*'));
-
-      // protocol is what comes before the first '*'
-      // domain is what comes after the first '*' and before the first slash
-      this.wildcardOrigins = originsWithWildcard.map(o => {
-        const [protocol, domain] = o.split('*');
-        return new WildcardOrigin({ protocol, domain });
-      });
+    const originsWithWildcard = this.config.acceptedOrigins.filter(o => o.includes('*'));
+    if (originsWithWildcard.length === 0) {
+      return [];
     }
 
-    return this.wildcardOrigins;
+    // protocol is what comes before the first '*'
+    // domain is what comes after the first '*' and before the first slash
+    const wildcardOrigins: WildcardOrigin[] = [];
+    for (const o of originsWithWildcard) {
+      const components = o.split('*');
+      if (components.length !== 2) {
+        throw new NativeAuthInvalidWildcardOriginError();
+      }
+
+      const [protocol, domain] = components;
+      if (protocol !== '' && !protocol.includes('://')) {
+        throw new NativeAuthInvalidWildcardOriginError();
+      }
+
+      wildcardOrigins.push(new WildcardOrigin({ protocol, domain }));
+    }
+
+    return wildcardOrigins;
   }
 }
