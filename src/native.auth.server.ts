@@ -12,12 +12,18 @@ import { NativeAuthInvalidTokenTtlError } from "./entities/errors/native.auth.in
 import { NativeAuthInvalidTokenError } from "./entities/errors/native.auth.invalid.token.error";
 import { NativeAuthInvalidConfigError } from "./entities/errors/native.auth.invalid.config.error";
 import { NativeAuthInvalidImpersonateError } from "./entities/errors/native.auth.invalid.impersonate.error";
+import { WildcardOrigin } from "./entities/wildcard.origin";
+import { NativeAuthInvalidWildcardOriginError } from "./entities/errors/native.auth.invalid.wildcard.origin.error";
 
 
 export class NativeAuthServer {
   private DEFAULT_API_URL = "https://api.multiversx.com";
   private MAX_EXPIRY_SECONDS = 86400;
   private ONE_HOUR = 3600;
+
+  private readonly acceptedWildcardOrigins = new Set<string>();
+
+  private readonly wildcardOrigins: WildcardOrigin[] = [];
 
   constructor(
     readonly config: NativeAuthServerConfig
@@ -37,6 +43,8 @@ export class NativeAuthServer {
     if (!config.acceptedOrigins || config.acceptedOrigins.length === 0) {
       throw new NativeAuthInvalidConfigError('at least one value must be specified in the acceptedOrigins array');
     }
+
+    this.wildcardOrigins = this.getWildcardOrigins();
   }
 
   /** decodes the accessToken in its components: ttl, origin, address, signature, blockHash & body */
@@ -312,6 +320,10 @@ export class NativeAuthServer {
   }
 
   private async isOriginAccepted(origin: string): Promise<boolean> {
+    if (this.isWildcardOriginAccepted(origin)) {
+      return true;
+    }
+
     const isAccepted = this.config.acceptedOrigins.includes(origin) || this.config.acceptedOrigins.includes('https://' + origin);
     if (isAccepted) {
       return true;
@@ -322,5 +334,55 @@ export class NativeAuthServer {
     }
 
     return false;
+  }
+
+  private isWildcardOriginAccepted(origin: string): boolean {
+    if (this.acceptedWildcardOrigins.has(origin)) {
+      return true;
+    }
+
+    if (this.wildcardOrigins.length === 0) {
+      return false;
+    }
+
+    const wildcardOrigin = this.wildcardOrigins.find(o => origin.startsWith(o.protocol) && origin.endsWith(o.domain));
+    if (!wildcardOrigin) {
+      return false;
+    }
+
+    this.acceptedWildcardOrigins.add(origin);
+
+    if (this.acceptedWildcardOrigins.size > 1000) {
+      this.acceptedWildcardOrigins.delete(this.acceptedWildcardOrigins.keys().next().value);
+    }
+
+    return true;
+  }
+
+
+  private getWildcardOrigins(): WildcardOrigin[] {
+    const originsWithWildcard = this.config.acceptedOrigins.filter(o => o.includes('*'));
+    if (originsWithWildcard.length === 0) {
+      return [];
+    }
+
+    // protocol is what comes before the first '*'
+    // domain is what comes after the first '*' and before the first slash
+    const wildcardOrigins: WildcardOrigin[] = [];
+    for (const origin of originsWithWildcard) {
+      const components = origin.split('*');
+      if (components.length !== 2) {
+        throw new NativeAuthInvalidWildcardOriginError();
+      }
+
+      const [protocol, domain] = components;
+      if (protocol !== '' && !['https://', 'http://'].includes(protocol)) {
+        throw new NativeAuthInvalidWildcardOriginError();
+      }
+
+      wildcardOrigins.push(new WildcardOrigin({ protocol, domain }));
+    }
+
+    return wildcardOrigins;
   }
 }

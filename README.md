@@ -38,7 +38,8 @@ const result = await server.validate(accessToken);
   validateImpersonateCallback: (signerAddress: string, impersonateAddress: string) => boolean | Promise<boolean>;
 
   // A mandatory list of accepted origins in case the server component must validate the incoming requests
-  // by domain. At least one value must be provided
+  // by domain. At least one value must be provided. Wildcards are accepted in the form '*.domain.com' or 'https://*.domain.com'.
+  // General wildcard is also accepted, in the form '*'
   acceptedOrigins: string[] = [];
 
   // An optional function that returns a boolean if the origin received as a parameter is accepted.
