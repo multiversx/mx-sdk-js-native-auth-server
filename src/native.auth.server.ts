@@ -376,7 +376,7 @@ export class NativeAuthServer {
       }
 
       const [protocol, domain] = components;
-      if (protocol !== '' && !protocol.includes('://')) {
+      if (protocol !== '' && !['https://', 'http://'].includes(protocol)) {
         throw new NativeAuthInvalidWildcardOriginError();
       }
 
