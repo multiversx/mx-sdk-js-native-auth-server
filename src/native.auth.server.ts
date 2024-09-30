@@ -369,8 +369,8 @@ export class NativeAuthServer {
     // protocol is what comes before the first '*'
     // domain is what comes after the first '*' and before the first slash
     const wildcardOrigins: WildcardOrigin[] = [];
-    for (const o of originsWithWildcard) {
-      const components = o.split('*');
+    for (const origin of originsWithWildcard) {
+      const components = origin.split('*');
       if (components.length !== 2) {
         throw new NativeAuthInvalidWildcardOriginError();
       }
