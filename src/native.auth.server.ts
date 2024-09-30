@@ -12,12 +12,17 @@ import { NativeAuthInvalidTokenTtlError } from "./entities/errors/native.auth.in
 import { NativeAuthInvalidTokenError } from "./entities/errors/native.auth.invalid.token.error";
 import { NativeAuthInvalidConfigError } from "./entities/errors/native.auth.invalid.config.error";
 import { NativeAuthInvalidImpersonateError } from "./entities/errors/native.auth.invalid.impersonate.error";
+import { WildcardOrigin } from "./entities/wildcard.origin";
 
 
 export class NativeAuthServer {
   private DEFAULT_API_URL = "https://api.multiversx.com";
   private MAX_EXPIRY_SECONDS = 86400;
   private ONE_HOUR = 3600;
+
+  private readonly acceptedWildcardOrigins = new Set<string>();
+
+  private wildcardOrigins: WildcardOrigin[] | undefined = undefined;
 
   constructor(
     readonly config: NativeAuthServerConfig
@@ -312,6 +317,10 @@ export class NativeAuthServer {
   }
 
   private async isOriginAccepted(origin: string): Promise<boolean> {
+    if (this.isWildcardOriginAccepted(origin)) {
+      return true;
+    }
+
     const isAccepted = this.config.acceptedOrigins.includes(origin) || this.config.acceptedOrigins.includes('https://' + origin);
     if (isAccepted) {
       return true;
@@ -322,5 +331,45 @@ export class NativeAuthServer {
     }
 
     return false;
+  }
+
+  private isWildcardOriginAccepted(origin: string): boolean {
+    if (this.acceptedWildcardOrigins.has(origin)) {
+      return true;
+    }
+
+    const wildcardOrigins = this.getWildcardOrigins();
+    if (wildcardOrigins.length === 0) {
+      return false;
+    }
+
+    const wildcardOrigin = wildcardOrigins.find(o => origin.startsWith(o.protocol) && origin.endsWith(o.domain));
+    if (!wildcardOrigin) {
+      return false;
+    }
+
+    this.acceptedWildcardOrigins.add(origin);
+
+    if (this.acceptedWildcardOrigins.size > 1000) {
+      this.acceptedWildcardOrigins.delete(this.acceptedWildcardOrigins.keys().next().value);
+    }
+
+    return true;
+  }
+
+
+  private getWildcardOrigins(): WildcardOrigin[] {
+    if (!this.wildcardOrigins) {
+      const originsWithWildcard = this.config.acceptedOrigins.filter(o => o.includes('*'));
+
+      // protocol is what comes before the first '*'
+      // domain is what comes after the first '*' and before the first slash
+      this.wildcardOrigins = originsWithWildcard.map(o => {
+        const [protocol, domain] = o.split('*');
+        return new WildcardOrigin({ protocol, domain });
+      });
+    }
+
+    return this.wildcardOrigins;
   }
 }

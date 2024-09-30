@@ -255,6 +255,87 @@ describe("Native Auth", () => {
       }));
     });
 
+    it('General wildcard is accepted', async () => {
+      const server = new NativeAuthServer({
+        ...defaultConfig,
+        acceptedOrigins: ['*'],
+      });
+
+      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+      const result = await server.validate(ACCESS_TOKEN);
+      expect(result).toStrictEqual(new NativeAuthResult({
+        address: ADDRESS,
+        signerAddress: ADDRESS,
+        issued: BLOCK_TIMESTAMP,
+        expires: BLOCK_TIMESTAMP + TTL,
+        origin: ORIGIN,
+      }));
+    });
+
+    it('Wildcard origin is accepted', async () => {
+      const server = new NativeAuthServer({
+        ...defaultConfig,
+        acceptedOrigins: ['*.multiversx.com'],
+      });
+
+      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+      const result = await server.validate(ACCESS_TOKEN);
+      expect(result).toStrictEqual(new NativeAuthResult({
+        address: ADDRESS,
+        signerAddress: ADDRESS,
+        issued: BLOCK_TIMESTAMP,
+        expires: BLOCK_TIMESTAMP + TTL,
+        origin: ORIGIN,
+      }));
+    });
+
+    it('Wildcard origin is not accepted', async () => {
+      const server = new NativeAuthServer({
+        ...defaultConfig,
+        acceptedOrigins: ['*.elrond.com'],
+      });
+
+      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+      await expect(server.validate(ACCESS_TOKEN)).rejects.toThrow(NativeAuthOriginNotAcceptedError);
+    });
+
+    it('Wildcard origin with https is accepted', async () => {
+      const server = new NativeAuthServer({
+        ...defaultConfig,
+        acceptedOrigins: ['https://*.multiversx.com'],
+      });
+
+      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+      const result = await server.validate(ACCESS_TOKEN);
+      expect(result).toStrictEqual(new NativeAuthResult({
+        address: ADDRESS,
+        signerAddress: ADDRESS,
+        issued: BLOCK_TIMESTAMP,
+        expires: BLOCK_TIMESTAMP + TTL,
+        origin: ORIGIN,
+      }));
+    });
+
+    it('Wildcard origin with http is not accepted', async () => {
+      const server = new NativeAuthServer({
+        ...defaultConfig,
+        acceptedOrigins: ['http://*.multiversx.com'],
+      });
+
+      onSpecificBlockTimestampGet(mock).reply(200, BLOCK_TIMESTAMP);
+      onLatestBlockTimestampGet(mock).reply(200, [{ timestamp: BLOCK_TIMESTAMP }]);
+
+      await expect(server.validate(ACCESS_TOKEN)).rejects.toThrow(NativeAuthOriginNotAcceptedError);
+    });
+
     it('Origin should be accepted with custom validation', async () => {
       const server = new NativeAuthServer({
         ...defaultConfig,
