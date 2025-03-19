@@ -47,7 +47,7 @@ export class NativeAuthServerConfig {
   extraRequestHeaders?: { [key: string]: string };
 
   /** An optional function that returns a boolean if the signature is valid.
-   *
+   * @param message A string encoded in UTF8
    * This is called only if you want to override the signature verification method */
   verifySignature?: (
     address: string,
