@@ -246,13 +246,13 @@ export class NativeAuthServer {
 
   private async verifySignature(
     address: Address,
-    messageString: string,
+    message: string,
     signature: Buffer
   ): Promise<boolean> {
     if (this.config.verifySignature) {
       return await this.config.verifySignature(
-        address.bech32(),
-        messageString,
+        address.toBech32(),
+        message,
         signature
       );
     }
@@ -260,12 +260,12 @@ export class NativeAuthServer {
     const cryptoPublicKey = crypto.createPublicKey({
       format: "der",
       type: "spki",
-      key: this.toDER(address.pubkey()),
+      key: this.toDER(address.getPublicKey()),
     });
 
     const signableMessage = new Message({
       address,
-      data: Buffer.from(messageString, "utf8"),
+      data: Buffer.from(message, "utf8"),
     });
 
     const cryptoMessage = new MessageComputer().computeBytesForSigning(

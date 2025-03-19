@@ -51,7 +51,7 @@ export class NativeAuthServerConfig {
    * This is called only if you want to override the signature verification method */
   verifySignature?: (
     address: string,
-    messageString: string,
+    message: string,
     signature: Buffer
   ) => boolean | Promise<boolean>;
 }
