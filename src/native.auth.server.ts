@@ -1,20 +1,19 @@
+import { Address, Message, MessageComputer } from "@multiversx/sdk-core";
 import axios, { HttpStatusCode } from "axios";
 import * as crypto from "crypto";
 import { NativeAuthInvalidBlockHashError } from "./entities/errors/native.auth.invalid.block.hash.error";
-import { NativeAuthInvalidSignatureError } from "./entities/errors/native.auth.invalid.signature.error";
-import { NativeAuthTokenExpiredError } from "./entities/errors/native.auth.token.expired.error";
-import { NativeAuthServerConfig } from "./entities/native.auth.server.config";
-import { NativeAuthResult as NativeAuthValidateResult } from "./entities/native.auth.validate.result";
-import { NativeAuthDecoded } from "./entities/native.auth.decoded";
-import { NativeAuthOriginNotAcceptedError } from "./entities/errors/native.auth.origin.not.accepted.error";
-import { SignableMessage, Address } from "@multiversx/sdk-core";
-import { NativeAuthInvalidTokenTtlError } from "./entities/errors/native.auth.invalid.token.ttl.error";
-import { NativeAuthInvalidTokenError } from "./entities/errors/native.auth.invalid.token.error";
 import { NativeAuthInvalidConfigError } from "./entities/errors/native.auth.invalid.config.error";
 import { NativeAuthInvalidImpersonateError } from "./entities/errors/native.auth.invalid.impersonate.error";
-import { WildcardOrigin } from "./entities/wildcard.origin";
+import { NativeAuthInvalidSignatureError } from "./entities/errors/native.auth.invalid.signature.error";
+import { NativeAuthInvalidTokenError } from "./entities/errors/native.auth.invalid.token.error";
+import { NativeAuthInvalidTokenTtlError } from "./entities/errors/native.auth.invalid.token.ttl.error";
 import { NativeAuthInvalidWildcardOriginError } from "./entities/errors/native.auth.invalid.wildcard.origin.error";
-
+import { NativeAuthOriginNotAcceptedError } from "./entities/errors/native.auth.origin.not.accepted.error";
+import { NativeAuthTokenExpiredError } from "./entities/errors/native.auth.token.expired.error";
+import { NativeAuthDecoded } from "./entities/native.auth.decoded";
+import { NativeAuthServerConfig } from "./entities/native.auth.server.config";
+import { NativeAuthResult as NativeAuthValidateResult } from "./entities/native.auth.validate.result";
+import { WildcardOrigin } from "./entities/wildcard.origin";
 
 export class NativeAuthServer {
   private DEFAULT_API_URL = "https://api.multiversx.com";
@@ -25,23 +24,32 @@ export class NativeAuthServer {
 
   private readonly wildcardOrigins: WildcardOrigin[] = [];
 
-  constructor(
-    readonly config: NativeAuthServerConfig
-  ) {
+  constructor(readonly config: NativeAuthServerConfig) {
     if (!config.apiUrl) {
       config.apiUrl = this.DEFAULT_API_URL;
     }
 
-    if (!(config.maxExpirySeconds > 0 && config.maxExpirySeconds <= this.MAX_EXPIRY_SECONDS)) {
-      throw new NativeAuthInvalidConfigError(`maxExpirySeconds must be greater than 0 and cannot be greater than ${this.MAX_EXPIRY_SECONDS}`);
+    if (
+      !(
+        config.maxExpirySeconds > 0 &&
+        config.maxExpirySeconds <= this.MAX_EXPIRY_SECONDS
+      )
+    ) {
+      throw new NativeAuthInvalidConfigError(
+        `maxExpirySeconds must be greater than 0 and cannot be greater than ${this.MAX_EXPIRY_SECONDS}`
+      );
     }
 
     if (!Array.isArray(config.acceptedOrigins)) {
-      throw new NativeAuthInvalidConfigError('acceptedOrigins must be an array');
+      throw new NativeAuthInvalidConfigError(
+        "acceptedOrigins must be an array"
+      );
     }
 
     if (!config.acceptedOrigins || config.acceptedOrigins.length === 0) {
-      throw new NativeAuthInvalidConfigError('at least one value must be specified in the acceptedOrigins array');
+      throw new NativeAuthInvalidConfigError(
+        "at least one value must be specified in the acceptedOrigins array"
+      );
     }
 
     this.wildcardOrigins = this.getWildcardOrigins();
@@ -49,15 +57,15 @@ export class NativeAuthServer {
 
   /** decodes the accessToken in its components: ttl, origin, address, signature, blockHash & body */
   decode(accessToken: string): NativeAuthDecoded {
-    const tokenComponents = accessToken.split('.');
+    const tokenComponents = accessToken.split(".");
     if (tokenComponents.length !== 3) {
       throw new NativeAuthInvalidTokenError();
     }
 
-    const [address, body, signature] = accessToken.split('.');
+    const [address, body, signature] = accessToken.split(".");
     const parsedAddress = this.decodeValue(address);
     const parsedBody = this.decodeValue(body);
-    const bodyComponents = parsedBody.split('.');
+    const bodyComponents = parsedBody.split(".");
     if (bodyComponents.length !== 4) {
       throw new NativeAuthInvalidTokenError();
     }
@@ -84,7 +92,7 @@ export class NativeAuthServer {
     });
 
     // if empty object, delete extraInfo ('e30' = encoded '{}')
-    if (extraInfo === 'e30') {
+    if (extraInfo === "e30") {
       delete result.extraInfo;
     }
 
@@ -92,13 +100,16 @@ export class NativeAuthServer {
   }
 
   /** decodes and validates the accessToken.
-   * 
+   *
    * Performs validation of the block hash, verifies its validity, as well as origin verification */
   async validate(accessToken: string): Promise<NativeAuthValidateResult> {
     const decoded = this.decode(accessToken);
 
     if (decoded.ttl > this.config.maxExpirySeconds) {
-      throw new NativeAuthInvalidTokenTtlError(decoded.ttl, this.config.maxExpirySeconds);
+      throw new NativeAuthInvalidTokenTtlError(
+        decoded.ttl,
+        this.config.maxExpirySeconds
+      );
     }
 
     const isAccepted = await this.isOriginAccepted(decoded.origin);
@@ -121,14 +132,22 @@ export class NativeAuthServer {
     }
 
     const address = new Address(decoded.address);
-    const signatureBuffer = Buffer.from(decoded.signature, 'hex');
+    const signatureBuffer = Buffer.from(decoded.signature, "hex");
 
     const signedMessage = `${decoded.address}${decoded.body}`;
-    let valid = await this.verifySignature(address, signedMessage, signatureBuffer);
+    let valid = await this.verifySignature(
+      address,
+      signedMessage,
+      signatureBuffer
+    );
 
     if (!valid && !this.config.skipLegacyValidation) {
       const signedMessageLegacy = `${decoded.address}${decoded.body}{}`;
-      valid = await this.verifySignature(address, signedMessageLegacy, signatureBuffer);
+      valid = await this.verifySignature(
+        address,
+        signedMessageLegacy,
+        signatureBuffer
+      );
     }
 
     if (!valid) {
@@ -153,21 +172,30 @@ export class NativeAuthServer {
     return result;
   }
 
-  private async validateImpersonateAddress(decoded: NativeAuthDecoded): Promise<string | undefined> {
-    const impersonateAddress = decoded.extraInfo?.multisig ?? decoded.extraInfo?.impersonate;
+  private async validateImpersonateAddress(
+    decoded: NativeAuthDecoded
+  ): Promise<string | undefined> {
+    const impersonateAddress =
+      decoded.extraInfo?.multisig ?? decoded.extraInfo?.impersonate;
     if (!impersonateAddress) {
       return undefined;
     }
 
     if (this.config.validateImpersonateCallback) {
-      const isValid = await this.config.validateImpersonateCallback(decoded.address, impersonateAddress);
+      const isValid = await this.config.validateImpersonateCallback(
+        decoded.address,
+        impersonateAddress
+      );
       if (isValid) {
         return impersonateAddress;
       }
     }
 
     if (this.config.validateImpersonateUrl) {
-      const isValid = await this.validateImpersonateAddressFromUrl(decoded.address, impersonateAddress);
+      const isValid = await this.validateImpersonateAddressFromUrl(
+        decoded.address,
+        impersonateAddress
+      );
       if (isValid) {
         return impersonateAddress;
       }
@@ -176,7 +204,10 @@ export class NativeAuthServer {
     throw new NativeAuthInvalidImpersonateError();
   }
 
-  private async validateImpersonateAddressFromUrl(address: string, impersonateAddress: string): Promise<string | undefined> {
+  private async validateImpersonateAddressFromUrl(
+    address: string,
+    impersonateAddress: string
+  ): Promise<string | undefined> {
     const cacheKey = `impersonate:${address}:${impersonateAddress}`;
 
     if (this.config.cache) {
@@ -198,7 +229,10 @@ export class NativeAuthServer {
       return impersonateAddress;
     } catch (error) {
       // if the error is forbidden, we can cache the result
-      if (axios.isAxiosError(error) && error.response?.status === HttpStatusCode.Forbidden) {
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === HttpStatusCode.Forbidden
+      ) {
         if (this.config.cache) {
           await this.config.cache.setValue(cacheKey, 0, this.ONE_HOUR);
         }
@@ -210,46 +244,61 @@ export class NativeAuthServer {
     }
   }
 
-  private async verifySignature(address: Address, messageString: string, signature: Buffer): Promise<boolean> {
+  private async verifySignature(
+    address: Address,
+    message: string,
+    signature: Buffer
+  ): Promise<boolean> {
     if (this.config.verifySignature) {
-      return await this.config.verifySignature(address.bech32(), messageString, signature);
+      return await this.config.verifySignature(
+        address.toBech32(),
+        message,
+        signature
+      );
     }
 
     const cryptoPublicKey = crypto.createPublicKey({
-      format: 'der',
-      type: 'spki',
-      key: this.toDER(address.pubkey()),
+      format: "der",
+      type: "spki",
+      key: this.toDER(address.getPublicKey()),
     });
 
-    const signableMessage = new SignableMessage({
+    const signableMessage = new Message({
       address,
-      message: Buffer.from(messageString, 'utf8'),
+      data: Buffer.from(message, "utf8"),
     });
 
-    const cryptoMessage = Buffer.from(signableMessage.serializeForSigning().toString('hex'), "hex");
+    const cryptoMessage = new MessageComputer().computeBytesForSigning(
+      signableMessage
+    );
 
     return crypto.verify(null, cryptoMessage, cryptoPublicKey, signature);
   }
 
-
   private async get(url: string): Promise<any> {
-    const response = await axios.get(url, { headers: this.config.extraRequestHeaders });
+    const response = await axios.get(url, {
+      headers: this.config.extraRequestHeaders,
+    });
     return response.data;
   }
 
   private async getCurrentBlockTimestamp(): Promise<number> {
     if (this.config.cache) {
-      const timestamp = await this.config.cache.getValue('block:timestamp:latest');
+      const timestamp = await this.config.cache.getValue(
+        "block:timestamp:latest"
+      );
       if (timestamp) {
         return timestamp;
       }
     }
 
-    const response = await this.get(`${this.config.apiUrl}/blocks?size=1&fields=timestamp`);
+    const response = await this.get(
+      `${this.config.apiUrl}/blocks?size=1&fields=timestamp`
+    );
     const timestamp = Number(response[0].timestamp);
 
     if (this.config.cache) {
-      await this.config.cache.setValue('block:timestamp:latest', timestamp, 6);
+      await this.config.cache.setValue("block:timestamp:latest", timestamp, 6);
     }
 
     return timestamp;
@@ -257,17 +306,25 @@ export class NativeAuthServer {
 
   private async getBlockTimestamp(hash: string): Promise<number | undefined> {
     if (this.config.cache) {
-      const timestamp = await this.config.cache.getValue(`block:timestamp:${hash}`);
+      const timestamp = await this.config.cache.getValue(
+        `block:timestamp:${hash}`
+      );
       if (timestamp) {
         return timestamp;
       }
     }
 
     try {
-      const timestamp = await this.get(`${this.config.apiUrl}/blocks/${hash}?extract=timestamp`);
+      const timestamp = await this.get(
+        `${this.config.apiUrl}/blocks/${hash}?extract=timestamp`
+      );
 
       if (this.config.cache) {
-        await this.config.cache.setValue(`block:timestamp:${hash}`, Number(timestamp), this.config.maxExpirySeconds);
+        await this.config.cache.setValue(
+          `block:timestamp:${hash}`,
+          Number(timestamp),
+          this.config.maxExpirySeconds
+        );
       }
 
       return Number(timestamp);
@@ -283,16 +340,16 @@ export class NativeAuthServer {
   }
 
   private decodeValue(str: string) {
-    return Buffer.from(this.unescape(str), 'base64').toString('utf8');
+    return Buffer.from(this.unescape(str), "base64").toString("utf8");
   }
 
   private unescape(str: string) {
-    return str.replace(/-/g, "+").replace(/_/g, "\/");
+    return str.replace(/-/g, "+").replace(/_/g, "/");
   }
 
   private toDER(key: Buffer) {
     // Ed25519's OID
-    const oid = Buffer.from([0x06, 0x03, 0x2B, 0x65, 0x70]);
+    const oid = Buffer.from([0x06, 0x03, 0x2b, 0x65, 0x70]);
 
     // Create a byte sequence containing the OID and key
     const elements = Buffer.concat([
@@ -324,7 +381,9 @@ export class NativeAuthServer {
       return true;
     }
 
-    const isAccepted = this.config.acceptedOrigins.includes(origin) || this.config.acceptedOrigins.includes('https://' + origin);
+    const isAccepted =
+      this.config.acceptedOrigins.includes(origin) ||
+      this.config.acceptedOrigins.includes("https://" + origin);
     if (isAccepted) {
       return true;
     }
@@ -345,7 +404,9 @@ export class NativeAuthServer {
       return false;
     }
 
-    const wildcardOrigin = this.wildcardOrigins.find(o => origin.startsWith(o.protocol) && origin.endsWith(o.domain));
+    const wildcardOrigin = this.wildcardOrigins.find(
+      (o) => origin.startsWith(o.protocol) && origin.endsWith(o.domain)
+    );
     if (!wildcardOrigin) {
       return false;
     }
@@ -353,15 +414,19 @@ export class NativeAuthServer {
     this.acceptedWildcardOrigins.add(origin);
 
     if (this.acceptedWildcardOrigins.size > 1000) {
-      this.acceptedWildcardOrigins.delete(this.acceptedWildcardOrigins.keys().next().value);
+      const firstKey = this.acceptedWildcardOrigins.keys().next().value;
+      if (firstKey) {
+        this.acceptedWildcardOrigins.delete(firstKey);
+      }
     }
 
     return true;
   }
 
-
   private getWildcardOrigins(): WildcardOrigin[] {
-    const originsWithWildcard = this.config.acceptedOrigins.filter(o => o.includes('*'));
+    const originsWithWildcard = this.config.acceptedOrigins.filter((o) =>
+      o.includes("*")
+    );
     if (originsWithWildcard.length === 0) {
       return [];
     }
@@ -370,13 +435,13 @@ export class NativeAuthServer {
     // domain is what comes after the first '*' and before the first slash
     const wildcardOrigins: WildcardOrigin[] = [];
     for (const origin of originsWithWildcard) {
-      const components = origin.split('*');
+      const components = origin.split("*");
       if (components.length !== 2) {
         throw new NativeAuthInvalidWildcardOriginError();
       }
 
       const [protocol, domain] = components;
-      if (protocol !== '' && !['https://', 'http://'].includes(protocol)) {
+      if (protocol !== "" && !["https://", "http://"].includes(protocol)) {
         throw new NativeAuthInvalidWildcardOriginError();
       }
 
