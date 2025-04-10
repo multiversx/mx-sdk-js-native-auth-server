@@ -1,4 +1,4 @@
-import { Address, Message, MessageComputer } from "@multiversx/sdk-core";
+import { Address, Message, MessageComputer, LibraryConfig } from "@multiversx/sdk-core";
 import axios, { HttpStatusCode } from "axios";
 import * as crypto from "crypto";
 import { NativeAuthInvalidBlockHashError } from "./entities/errors/native.auth.invalid.block.hash.error";
@@ -27,6 +27,10 @@ export class NativeAuthServer {
   constructor(readonly config: NativeAuthServerConfig) {
     if (!config.apiUrl) {
       config.apiUrl = this.DEFAULT_API_URL;
+    }
+
+    if (config.customHRP) {
+      LibraryConfig.DefaultAddressHrp = config.customHRP;
     }
 
     if (
@@ -104,11 +108,15 @@ export class NativeAuthServer {
    * Performs validation of the block hash, verifies its validity, as well as origin verification */
   async validate(accessToken: string): Promise<NativeAuthValidateResult> {
     const decoded = this.decode(accessToken);
+    const decodedTtl = this.config.isTimestampMilliseconds ? decoded.ttl * 1000 : decoded.ttl;
+    const maxExpiryTime = this.config.isTimestampMilliseconds
+      ? this.config.maxExpirySeconds * 1000
+      : this.config.maxExpirySeconds;
 
-    if (decoded.ttl > this.config.maxExpirySeconds) {
+    if (decodedTtl > maxExpiryTime) {
       throw new NativeAuthInvalidTokenTtlError(
-        decoded.ttl,
-        this.config.maxExpirySeconds
+        decodedTtl,
+        maxExpiryTime
       );
     }
 
@@ -124,7 +132,7 @@ export class NativeAuthServer {
 
     const currentBlockTimestamp = await this.getCurrentBlockTimestamp();
 
-    const expires = blockTimestamp + decoded.ttl;
+    const expires = blockTimestamp + decodedTtl;
 
     const isTokenExpired = expires < currentBlockTimestamp;
     if (isTokenExpired) {
