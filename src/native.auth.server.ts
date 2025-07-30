@@ -62,7 +62,7 @@ export class NativeAuthServer {
       throw new NativeAuthInvalidTokenError();
     }
 
-    const [address, body, signature] = accessToken.split(".");
+    const [address, body, signature] = tokenComponents;
     const parsedAddress = this.decodeValue(address);
     const parsedBody = this.decodeValue(body);
     const bodyComponents = parsedBody.split(".");
