@@ -1,3 +1,4 @@
+/// <reference types="node" preserve="true" />
 import { NativeAuthCacheInterface } from "../native.auth.cache.interface";
 
 export class NativeAuthServerConfig {

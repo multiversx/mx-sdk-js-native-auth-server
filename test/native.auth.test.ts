@@ -90,7 +90,7 @@ describe("Native Auth", () => {
       const server = new NativeAuthServer(defaultConfig);
 
       const jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImFkZHJlc3MiOiJlcmQxY2V2c3c3bXE1dXZxeW1qcXp3cXZwcXRkcmhja2Vod2Z6OTluN3ByYXR5M3k3cTJqN3lwczg0Mm1xaCIsImlkIjozMTl9LCJkYXRhIjp7fSwiaWF0IjoxNjc1Nzg2NjU5LCJleHAiOjE2NzYyMTg2NTksImlzcyI6ImRldm5ldC1pZC1hcGkubXVsdGl2ZXJzeC5jb20iLCJzdWIiOiJlcmQxY2V2c3c3bXE1dXZxeW1qcXp3cXZwcXRkcmhja2Vod2Z6OTluN3ByYXR5M3k3cTJqN3lwczg0Mm1xaCJ9.pmndzMy2KVJWjTKM4xos8hzSA5FMnHsC0qWRr85IN8o';
-      expect(() => server.decode(jwt)).toThrowError(NativeAuthInvalidTokenError);
+      expect(() => server.decode(jwt)).toThrow(NativeAuthInvalidTokenError);
     });
 
     it('Simple validation for current timestamp', async () => {
